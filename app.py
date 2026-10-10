@@ -69,7 +69,7 @@ THEMES = {
         "good": "#15935f", "bad": "#d62839", "warn": "#c79100", "side": "#ffffff",
     },
 }
-FONT_PX = {"Small": 14, "Medium": 15, "Large": 16}
+FONT_PX = {"Small": 14, "Medium": 18, "Large": 22}
 
 
 def load_background(uploaded):
@@ -146,16 +146,16 @@ st.markdown(
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    /* ---------- BASE RESPONSIVE ROOT FONT SIZES ---------- */
-    html { font-size: 16px !important; }
+    /* ---------- BASE RESPONSIVE ROOT FONT SIZES (big on desktop) ---------- */
+    html { font-size: 22px !important; }
     @media (max-width: 1024px) {
-        html { font-size: 15px !important; }
+        html { font-size: 20px !important; }
     }
     @media (max-width: 768px) {
-        html { font-size: 14.5px !important; }
+        html { font-size: 18px !important; }
     }
     @media (max-width: 480px) {
-        html { font-size: 14px !important; }
+        html { font-size: 16px !important; }
     }
 
     /* ---------- GLOBAL CONTAINERS & OVERFLOW PREVENTION ---------- */
@@ -276,8 +276,9 @@ st.markdown(
     }
 
     section[data-testid="stSidebar"][aria-expanded="true"] {
-        width: 360px !important;
+        width: 440px !important;
         min-width: 320px !important;
+        max-width: 45vw !important;
     }
 
     @media (max-width: 768px) {
@@ -561,7 +562,6 @@ st.markdown(
     .positive .result-title {color: var(--bad);}
     .negative .result-title {color: var(--good);}
 
-<<<<<<< HEAD
     .gauge {
         width: 13.5rem;
         height: 13.5rem;
@@ -681,15 +681,7 @@ st.markdown(
         color: var(--text);
         text-align: right;
         white-space: nowrap;
-=======
-    .sum-card {background: var(--card); border: 1px solid var(--border); border-radius: 18px;
-        padding: 1.4rem 1.8rem; margin-top: 1.2rem;}
-    .sum-title {font-size: 0.9rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
-        color: var(--accent-text); margin-bottom: 0.8rem;}
-    .sum-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 2.5rem;}
-    .sum-row {display: flex; justify-content: space-between; padding: 0.45rem 0;
-        border-bottom: 1px solid var(--border); font-size: 1rem; color: var(--muted);}
-    .sum-row b {color: var(--text);}
+    }
 
     /* ---------- DROPDOWNS: white in Light mode, dark in Dark mode ---------- */
     div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] ~ * {
@@ -701,11 +693,18 @@ st.markdown(
         background-color: var(--solid) !important;
         color: var(--text) !important;
     }
+    div[data-testid="stSelectbox"] div[data-baseweb="select"],
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div,
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] input {
+        background-color: var(--solid) !important;
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+    }
     div[data-testid="stSelectbox"] svg {fill: var(--text) !important;}
     ul[role="listbox"], li[role="option"] {
         background-color: var(--solid) !important;
         color: var(--text) !important;
->>>>>>> origin/main
     }
 
     /* ---------- DROPDOWN OPEN LIST (the popup menu): white in Light, dark in Dark ---------- */
@@ -715,7 +714,9 @@ st.markdown(
     div[data-baseweb="menu"] *,
     div[role="listbox"],
     div[role="listbox"] *,
-    ul[role="listbox"] * {
+    ul[role="listbox"] *,
+    div[data-testid="stSelectboxVirtualDropdown"],
+    div[data-testid="stSelectboxVirtualDropdown"] * {
         background-color: var(--solid) !important;
         color: var(--text) !important;
     }
@@ -817,10 +818,12 @@ def build_report_pdf(r):
     generated = datetime.now().strftime("%d %B %Y, %H:%M")
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle("t", parent=styles["Title"], textColor=colors.HexColor("#e63946"))
+    title_style = ParagraphStyle(
+        "t", parent=styles["Title"], textColor=colors.HexColor("#e63946"))
     meta_style = ParagraphStyle("m", parent=styles["Normal"], textColor=colors.HexColor("#5b6578"),
                                 alignment=1, spaceAfter=14)
-    result_style = ParagraphStyle("r", parent=styles["Heading2"], textColor=colour, alignment=1)
+    result_style = ParagraphStyle(
+        "r", parent=styles["Heading2"], textColor=colour, alignment=1)
     note_style = ParagraphStyle("n", parent=styles["Normal"], fontSize=9,
                                 textColor=colors.HexColor("#5b6578"))
 
@@ -862,7 +865,8 @@ def build_report_pdf(r):
         Spacer(1, 6),
         stats,
         Spacer(1, 18),
-        Paragraph("Patient details used for this prediction", styles["Heading3"]),
+        Paragraph("Patient details used for this prediction",
+                  styles["Heading3"]),
         details,
         Spacer(1, 24),
         Paragraph("This report supports screening only and is not a medical diagnosis. "
