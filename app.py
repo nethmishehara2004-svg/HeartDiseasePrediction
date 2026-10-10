@@ -707,6 +707,31 @@ st.markdown(
         color: var(--text) !important;
 >>>>>>> origin/main
     }
+
+    /* ---------- DROPDOWN OPEN LIST (the popup menu): white in Light, dark in Dark ---------- */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] *,
+    div[data-baseweb="menu"],
+    div[data-baseweb="menu"] *,
+    div[role="listbox"],
+    div[role="listbox"] *,
+    ul[role="listbox"] * {
+        background-color: var(--solid) !important;
+        color: var(--text) !important;
+    }
+    div[data-baseweb="popover"] {
+        border: 1.5px solid var(--border) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
+    }
+    /* hovered and selected option highlight */
+    div[data-baseweb="popover"] [role="option"]:hover,
+    div[data-baseweb="popover"] [role="option"][aria-selected="true"],
+    div[data-baseweb="popover"] li:hover,
+    div[role="listbox"] [role="option"]:hover,
+    div[role="listbox"] [role="option"][aria-selected="true"] {
+        background-color: var(--card2) !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
