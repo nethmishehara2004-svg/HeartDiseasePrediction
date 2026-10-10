@@ -51,7 +51,7 @@ model, scaler = load_artifacts()
 # text shown on screen is translated.
 # ============================================================
 
-LANGUAGES = {"English": "en", "සිංහල": "si", "தமிழ்": "ta"}   # order = priority; first is the default
+LANGUAGES = {"සිංහල": "si", "தமிழ்": "ta", "English": "en"}   # order = priority; first is the default
 
 TRANSLATIONS = {
     "si": {
@@ -78,7 +78,7 @@ TRANSLATIONS = {
         "Predict": "පුරෝකථනය කරන්න",
         "Clear form": "පෝරමය හිස් කරන්න",
         "New prediction": "නව පුරෝකථනයක්",
-        "Download report (PDF)": "වාර්තාව බාගන්න (PDF). වාර්තාව ඉංග්‍රීසියෙන් සකස් වේ",
+        "Download report (PDF)": "වාර්තාව බාගන්න (PDF)",
         "Age": "වයස",
         "Gender": "ස්ත්‍රී පුරුෂ භාවය",
         "Male": "පුරුෂ",
@@ -99,7 +99,7 @@ TRANSLATIONS = {
         "Left Ventricular Hypertrophy": "වම් හෘද කෝෂිකාවේ අධිවර්ධනය",
         "Maximum Heart Rate Achieved": "ළඟා වූ උපරිම හෘද ස්පන්දන වේගය",
         "Exercise Induced Angina": "ව්‍යායාමයෙන් ඇති වන ඇන්ජයිනාව",
-        "Old Peak (ST Depression)": "ST අවපීඩන අගය (ඕල්ඩ් පීක්)",
+        "Old Peak (ST Depression)": "Old Peak (ST අවපීඩනය)",
         "Slope of Peak Exercise ST": "උපරිම ව්‍යායාමයේදී ST කොටසේ බෑවුම",
         "Upsloping": "ඉහළට බෑවුම්",
         "Flat": "සමතලා",
@@ -121,6 +121,7 @@ TRANSLATIONS = {
         "Patient details used for this prediction": "මෙම පුරෝකථනයට භාවිතා කළ රෝගී තොරතුරු",
         # PDF
         "Something went wrong": "යම් දෝෂයක් සිදු විය",
+        "PDF font note": "මෙම භාෂාව සඳහා PDF අකුරු 'fonts' ෆෝල්ඩරයේ නොමැත; වාර්තාව ඉංග්‍රීසියෙන් සකස් වේ.",
         "Heart Disease Prediction Report": "හෘද රෝග පුරෝකථන වාර්තාව",
         "Generated on": "සකස් කළ දිනය",
         "Please consult a qualified doctor for any medical decision.":
@@ -148,7 +149,7 @@ TRANSLATIONS = {
         "Predict": "கணிக்கவும்",
         "Clear form": "படிவத்தை அழி",
         "New prediction": "புதிய கணிப்பு",
-        "Download report (PDF)": "அறிக்கையைப் பதிவிறக்கு (PDF). அறிக்கை ஆங்கிலத்தில் இருக்கும்.",
+        "Download report (PDF)": "அறிக்கையைப் பதிவிறக்கு (PDF)",
         "Age": "வயது",
         "Gender": "பாலினம்",
         "Male": "ஆண்",
@@ -169,7 +170,7 @@ TRANSLATIONS = {
         "Left Ventricular Hypertrophy": "இடது இதயக் கீழறை தசை தடிப்பு",
         "Maximum Heart Rate Achieved": "அடைந்த அதிகபட்ச இதயத் துடிப்பு",
         "Exercise Induced Angina": "உடற்பயிற்சியால் ஏற்படும் ஆஞ்சினா",
-        "Old Peak (ST Depression)": "ST தாழ்வு அளவு (ஓல்ட் பீக்)",
+        "Old Peak (ST Depression)": "Old Peak (ST தாழ்வு)",
         "Slope of Peak Exercise ST": "உச்ச உடற்பயிற்சியின் போது ST பகுதியின் சரிவு",
         "Upsloping": "மேல்நோக்கிய சரிவு",
         "Flat": "தட்டையான சரிவு",
@@ -189,6 +190,7 @@ TRANSLATIONS = {
         "High": "அதிகம்",
         "Patient details used for this prediction": "இந்தக் கணிப்புக்குப் பயன்படுத்தப்பட்ட நோயாளி விவரங்கள்",
         "Something went wrong": "ஏதோ தவறு நடந்துவிட்டது",
+        "PDF font note": "இந்த மொழிக்கான PDF எழுத்துரு 'fonts' கோப்புறையில் இல்லை; அறிக்கை ஆங்கிலத்தில் இருக்கும்.",
         "Heart Disease Prediction Report": "இதய நோய் முன்கணிப்பு அறிக்கை",
         "Generated on": "உருவாக்கிய தேதி",
         "Please consult a qualified doctor for any medical decision.":
@@ -198,6 +200,7 @@ TRANSLATIONS = {
 
 # Default English wording for the longer sidebar blocks
 EN_TEXT = {
+    "PDF font note": "PDF font for this language not found in the 'fonts' folder; the report will be in English.",
     "ABOUT_TEXT": "An AI-based tool that estimates the likelihood of heart disease "
                   "from 13 clinical measurements using a trained neural network.",
     "HOWTO_TEXT": "1. Fill in both cards.<br>2. Click Predict.<br>3. The result opens on a new page.",
@@ -374,9 +377,8 @@ DEFAULTS = {
 
 def clear_form():
     """Reset every input to its default value."""
-    for code in LANGUAGES.values():
-        for key, value in DEFAULTS.items():
-            st.session_state[f"{key}_{code}"] = value
+    for key, value in DEFAULTS.items():
+        st.session_state[key] = value
 
 
 # ============================================================
@@ -495,19 +497,9 @@ def build_report_pdf(r, language):
 
 if st.session_state.page == "form":
 
-    # Every language gets its own set of widgets (keys end in _en / _si / _ta). Streamlit keeps
-    # showing the old text in a dropdown when only its display format changes, so a fresh
-    # widget per language is what makes the chosen option appear in the selected language.
-    def wk(name):
-        return f"{name}_{lang}"
-
-    previous = st.session_state.get("form_lang")
+    # make sure every input has a value (also after returning from the result page)
     for key, value in DEFAULTS.items():
-        if previous and previous != lang and f"{key}_{previous}" in st.session_state:
-            st.session_state[wk(key)] = st.session_state[f"{key}_{previous}"]   # keep the entered values
-        else:
-            st.session_state.setdefault(wk(key), value)
-    st.session_state.form_lang = lang
+        st.session_state.setdefault(key, value)
 
     with st.form("patient_form"):
 
@@ -517,29 +509,29 @@ if st.session_state.page == "form":
             with st.container(border=True):
                 st.markdown(f'<div class="field-group">{tr("Patient Information")}</div>',
                             unsafe_allow_html=True)
-                st.number_input(tr("Age"), min_value=1, max_value=120, key=wk("age"))
-                st.selectbox(tr("Gender"), ["Male", "Female"], format_func=tr, key=wk("gender"))
-                st.selectbox(tr("Chest Pain Type"), list(CP_MAP), format_func=tr, key=wk("cp"))
-                st.number_input(tr("Resting Blood Pressure"), min_value=80, max_value=250, key=wk("trestbps"))
-                st.number_input(tr("Cholesterol"), min_value=100, max_value=600, key=wk("chol"))
+                st.number_input(tr("Age"), min_value=1, max_value=120, key="age")
+                st.selectbox(tr("Gender"), ["Male", "Female"], format_func=tr, key="gender")
+                st.selectbox(tr("Chest Pain Type"), list(CP_MAP), format_func=tr, key="cp")
+                st.number_input(tr("Resting Blood Pressure"), min_value=80, max_value=250, key="trestbps")
+                st.number_input(tr("Cholesterol"), min_value=100, max_value=600, key="chol")
                 st.selectbox(tr("Fasting Blood Sugar > 120 mg/dL"), list(FBS_MAP),
-                             format_func=tr, key=wk("fbs"))
+                             format_func=tr, key="fbs")
                 st.selectbox(tr("Resting ECG Result"), list(RESTECG_MAP),
-                             format_func=tr, key=wk("restecg"))
+                             format_func=tr, key="restecg")
 
         with col2:
             with st.container(border=True):
                 st.markdown(f'<div class="field-group">{tr("Clinical Measurements")}</div>',
                             unsafe_allow_html=True)
-                st.number_input(tr("Maximum Heart Rate Achieved"), min_value=60, max_value=220, key=wk("thalach"))
+                st.number_input(tr("Maximum Heart Rate Achieved"), min_value=60, max_value=220, key="thalach")
                 st.selectbox(tr("Exercise Induced Angina"), list(EXANG_MAP),
-                             format_func=tr, key=wk("exang"))
+                             format_func=tr, key="exang")
                 st.number_input(tr("Old Peak (ST Depression)"), min_value=0.0, max_value=10.0,
-                                step=0.1, key=wk("oldpeak"))
+                                step=0.1, key="oldpeak")
                 st.selectbox(tr("Slope of Peak Exercise ST"), list(SLOPE_MAP),
-                             format_func=tr, key=wk("slope"))
-                st.selectbox(tr("Number of Major Vessels"), ["0", "1", "2", "3", "4"], key=wk("ca"))
-                st.selectbox(tr("Thalassemia"), list(THAL_MAP), format_func=tr, key=wk("thal"))
+                             format_func=tr, key="slope")
+                st.selectbox(tr("Number of Major Vessels"), ["0", "1", "2", "3", "4"], key="ca")
+                st.selectbox(tr("Thalassemia"), list(THAL_MAP), format_func=tr, key="thal")
 
         btn_predict, btn_clear = st.columns([3, 1])
         with btn_predict:
@@ -554,14 +546,14 @@ if st.session_state.page == "form":
 
     if submitted:
         try:
-            s = {key: st.session_state[wk(key)] for key in DEFAULTS}
-            sex = 1 if s["gender"] == "Male" else 0
+            s = st.session_state
+            sex = 1 if s.gender == "Male" else 0
 
             patient = np.array([[
-                float(s["age"]), sex, CP_MAP[s["cp"]], float(s["trestbps"]), float(s["chol"]),
-                FBS_MAP[s["fbs"]], RESTECG_MAP[s["restecg"]], float(s["thalach"]),
-                EXANG_MAP[s["exang"]], float(s["oldpeak"]), SLOPE_MAP[s["slope"]],
-                int(s["ca"]), THAL_MAP[s["thal"]],
+                float(s.age), sex, CP_MAP[s.cp], float(s.trestbps), float(s.chol),
+                FBS_MAP[s.fbs], RESTECG_MAP[s.restecg], float(s.thalach),
+                EXANG_MAP[s.exang], float(s.oldpeak), SLOPE_MAP[s.slope],
+                int(s.ca), THAL_MAP[s.thal],
             ]])
 
             probability = float(model.predict(scaler.transform(patient), verbose=0)[0][0])
@@ -633,7 +625,7 @@ else:
     _, btn_col, _ = st.columns([1, 2, 1])
     with btn_col:
         if lang != "en" and pdf_fonts_for(lang) is None:
-            st.caption(tr(" "))
+            st.caption(tr("PDF font note"))
         st.download_button(
             tr('Download report (PDF)'),
             data=build_report_pdf(r, lang),
