@@ -894,37 +894,49 @@ if st.session_state.page == "form":
             with st.container(border=True):
                 st.markdown(
                     '<div class="field-group">🧍 Patient Information</div>', unsafe_allow_html=True)
-                age = st.number_input("Age", min_value=1,
-                                      max_value=120, value=50)
+                age = st.number_input("Age (years)", min_value=1,
+                                      max_value=120, value=50,
+                                      help="Patient age in years.")
                 gender = st.selectbox("Gender", ["Male", "Female"])
-                cp = st.selectbox("Chest Pain Type", list(CP_MAP.keys()))
+                cp = st.selectbox("Chest Pain Type", list(CP_MAP.keys()),
+                                  help="Type of chest pain the patient experiences.")
                 trestbps = st.number_input(
-                    "Resting Blood Pressure", min_value=0, max_value=300, value=120)
+                    "Resting Blood Pressure (mm Hg)", min_value=0, max_value=300, value=120,
+                    help="Systolic blood pressure at rest. Typical: 90–120 mm Hg.")
                 chol = st.number_input(
-                    "Cholesterol", min_value=0, max_value=700, value=200)
+                    "Cholesterol (mg/dl)", min_value=0, max_value=700, value=200,
+                    help="Serum cholesterol. Desirable: below 200 mg/dl.")
                 fbs = st.selectbox(
-                    "Fasting Blood Sugar > 120 mg/dl", list(FBS_MAP.keys()))
+                    "Fasting Blood Sugar > 120 mg/dl", list(FBS_MAP.keys()),
+                    help="Is fasting blood sugar higher than 120 mg/dl?")
                 restecg = st.selectbox(
-                    "Resting ECG Result", list(RESTECG_MAP.keys()))
+                    "Resting ECG Result", list(RESTECG_MAP.keys()),
+                    help="Result of the resting electrocardiogram.")
 
         with col2:
             with st.container(border=True):
                 st.markdown(
                     '<div class="field-group">🩺 Clinical Measurements</div>', unsafe_allow_html=True)
                 thalach = st.number_input(
-                    "Maximum Heart Rate Achieved", min_value=0, max_value=250, value=150)
+                    "Maximum Heart Rate Achieved (bpm)", min_value=0, max_value=250, value=150,
+                    help="Highest heart rate reached during the exercise test.")
                 exang = st.selectbox(
-                    "Exercise Induced Angina", list(EXANG_MAP.keys()))
+                    "Exercise Induced Angina", list(EXANG_MAP.keys()),
+                    help="Did exercise cause chest pain?")
                 oldpeak = st.number_input(
-                    "Old Peak (ST Depression)", min_value=0.0, max_value=10.0, value=1.0, step=0.1)
+                    "Old Peak (ST Depression)", min_value=0.0, max_value=10.0, value=1.0, step=0.1,
+                    help="ST depression caused by exercise relative to rest. Typical: 0–1.")
                 slope = st.selectbox(
-                    "Slope of Peak Exercise ST", list(SLOPE_MAP.keys()))
+                    "Slope of Peak Exercise ST", list(SLOPE_MAP.keys()),
+                    help="Shape of the ST segment at peak exercise.")
                 ca = st.selectbox("Number of Major Vessels",
-                                  ["0", "1", "2", "3", "4"])
-                thal = st.selectbox("Thalassemia", list(THAL_MAP.keys()))
+                                  ["0", "1", "2", "3", "4"],
+                                  help="Major vessels coloured by fluoroscopy (0–4).")
+                thal = st.selectbox("Thalassemia", list(THAL_MAP.keys()),
+                                    help="Result of the thallium stress test.")
 
         submitted = st.form_submit_button(
-            "🔍 Predict", use_container_width=True)
+            "🔍 Predict", width="stretch")
 
     # ------------------------------------------------------------
     # PREDICTION (runs on submit, then moves to the result page)
@@ -952,7 +964,8 @@ if st.session_state.page == "form":
 
             patient_scaled = scaler.transform(patient)
 
-            prediction = model.predict(patient_scaled, verbose=0)
+            with st.spinner("Analysing patient data..."):
+                prediction = model.predict(patient_scaled, verbose=0)
             probability = float(prediction[0][0])
 
             risk_pct = probability * 100
@@ -995,6 +1008,10 @@ if st.session_state.page == "form":
 
 else:
     r = st.session_state.result
+    if r is None:
+        # session was reset (e.g. server restart): go back to the form
+        st.session_state.page = "form"
+        st.rerun()
     color = t[LEVEL_COLOUR[r["level"]]]
 
     _, centre, _ = st.columns([1, 2, 1])
@@ -1027,6 +1044,30 @@ else:
         unsafe_allow_html=True
     )
 
+    # values outside the typical healthy range (display only, not used by the model)
+    inp = r["inputs"]
+    flags = []
+    if inp["Resting Blood Pressure"] >= 130:
+        flags.append(f"Resting blood pressure is high ({inp['Resting Blood Pressure']} mm Hg)")
+    if inp["Cholesterol"] >= 240:
+        flags.append(f"Cholesterol is high ({inp['Cholesterol']} mg/dl)")
+    if inp["Fasting Blood Sugar > 120"] == "Yes":
+        flags.append("Fasting blood sugar is above 120 mg/dl")
+    if inp["Exercise Angina"] == "Yes":
+        flags.append("Chest pain occurs during exercise")
+    if float(inp["Old Peak"]) >= 2:
+        flags.append(f"ST depression is elevated ({inp['Old Peak']})")
+    if int(inp["Major Vessels"]) > 0:
+        flags.append(f"{inp['Major Vessels']} major vessel(s) affected")
+
+    _, flag_col, _ = st.columns([1, 2, 1])
+    with flag_col:
+        if flags:
+            st.warning("**Values outside the typical range:**\n\n" +
+                       "\n".join(f"- {f}" for f in flags))
+        else:
+            st.success("All key measurements are within the typical range.")
+
     _, btn_col, _ = st.columns([1, 2, 1])
     with btn_col:
         # optional: the user can download the report if they want it
@@ -1035,8 +1076,8 @@ else:
             data=build_report_pdf(r),
             file_name=f"heart_report_{datetime.now():%Y%m%d_%H%M}.pdf",
             mime="application/pdf",
-            use_container_width=True,
+            width="stretch",
         )
-        if st.button("← New prediction", use_container_width=True):
+        if st.button("← New prediction", width="stretch"):
             st.session_state.page = "form"
             st.rerun()
