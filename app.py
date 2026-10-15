@@ -51,6 +51,22 @@ LANGUAGES = {"English": "en", "සිංහල": "si", "தமிழ்": "ta"}
 TRANSLATIONS = {
     "si": {
         "Heart Disease Prediction System": "හෘද රෝග පුරෝකථන පද්ධතිය",
+        "Fasting Blood Sugar > 120": "නිරාහාර රුධිර සීනි > 120",
+        "Resting ECG": "විවේක ECG",
+        "Max Heart Rate": "උපරිම හෘද ස්පන්දනය",
+        "Exercise Angina": "ව්‍යායාම ඇන්ජයිනාව",
+        "Old Peak": "ඕල්ඩ් පීක්",
+        "Slope": "බෑවුම",
+        "Major Vessels": "ප්‍රධාන රුධිර නාල",
+        "Values outside the typical range": "සාමාන්‍ය පරාසයෙන් පිටත අගයන්",
+        "All key measurements are within the typical range.": "සියලුම ප්‍රධාන මිනුම් සාමාන්‍ය පරාසය තුළ පවතී.",
+        "Resting blood pressure is high": "විවේක රුධිර පීඩනය ඉහළයි",
+        "Cholesterol is high": "කොලෙස්ටරෝල් ඉහළයි",
+        "Fasting blood sugar is above 120 mg/dl": "නිරාහාර රුධිර සීනි 120 mg/dL ට වඩා වැඩියි",
+        "Chest pain occurs during exercise": "ව්‍යායාම කරන විට පපුවේ වේදනාව ඇති වේ",
+        "ST depression is elevated": "ST අවපීඩනය ඉහළයි",
+        "major vessel(s) affected": "ප්‍රධාන රුධිර නාල බලපෑමට ලක්ව ඇත",
+        "Analysing patient data...": "රෝගී දත්ත විශ්ලේෂණය කරමින්...",
         "Enter the 13 patient details to estimate the risk of heart disease":
             "හෘද රෝග අවදානම ඇස්තමේන්තු කිරීමට රෝගියාගේ තොරතුරු 13 ඇතුළත් කරන්න",
         "Appearance": "පෙනුම",
@@ -122,6 +138,22 @@ TRANSLATIONS = {
     },
     "ta": {
         "Heart Disease Prediction System": "இதய நோய் முன்கணிப்பு அமைப்பு",
+        "Fasting Blood Sugar > 120": "உண்ணாவிரத இரத்தச் சர்க்கரை > 120",
+        "Resting ECG": "ஓய்வு நிலை ECG",
+        "Max Heart Rate": "அதிகபட்ச இதயத் துடிப்பு",
+        "Exercise Angina": "உடற்பயிற்சி ஆஞ்சினா",
+        "Old Peak": "ஓல்ட் பீக்",
+        "Slope": "சரிவு",
+        "Major Vessels": "முக்கிய இரத்த நாளங்கள்",
+        "Values outside the typical range": "வழக்கமான வரம்பிற்கு வெளியே உள்ள மதிப்புகள்",
+        "All key measurements are within the typical range.": "அனைத்து முக்கிய அளவீடுகளும் வழக்கமான வரம்பிற்குள் உள்ளன.",
+        "Resting blood pressure is high": "ஓய்வு நிலை இரத்த அழுத்தம் அதிகம்",
+        "Cholesterol is high": "கொலஸ்ட்ரால் அதிகம்",
+        "Fasting blood sugar is above 120 mg/dl": "உண்ணாவிரத இரத்தச் சர்க்கரை 120 mg/dL ஐ விட அதிகம்",
+        "Chest pain occurs during exercise": "உடற்பயிற்சியின் போது நெஞ்சு வலி ஏற்படுகிறது",
+        "ST depression is elevated": "ST தாழ்வு அதிகரித்துள்ளது",
+        "major vessel(s) affected": "முக்கிய இரத்த நாளங்கள் பாதிக்கப்பட்டுள்ளன",
+        "Analysing patient data...": "நோயாளி தரவை பகுப்பாய்வு செய்கிறது...",
         "Enter the 13 patient details to estimate the risk of heart disease":
             "இதய நோய் ஆபத்தை மதிப்பிட நோயாளியின் 13 விவரங்களை உள்ளிடவும்",
         "Appearance": "தோற்றம்",
@@ -1115,10 +1147,11 @@ DEFAULTS = {
 
 
 def clear_form():
-    """Reset every input to default values."""
-    for code in LANGUAGES.values():
-        for key, value in DEFAULTS.items():
-            st.session_state[f"{key}_{code}"] = value
+    """Reset every input to its default value."""
+    for key, value in DEFAULTS.items():
+        st.session_state[f"v_{key}"] = value
+        for code in LANGUAGES.values():
+            st.session_state.pop(f"f_{key}_{code}", None)
 
 
 # ============================================================
@@ -1129,7 +1162,7 @@ def build_report_pdf(r):
     """Return the prediction report as PDF bytes."""
     colours = {"Low": "#15935f", "Moderate": "#c79100", "High": "#d62839"}
     colour = colors.HexColor(colours[r["level"]])
-    plain_title = r["title"].replace("🔴", "").replace("🟢", "").strip()
+    plain_title = r["title"]
     generated = datetime.now().strftime("%d %B %Y, %H:%M")
 
     styles = getSampleStyleSheet()
@@ -1200,16 +1233,30 @@ def build_report_pdf(r):
 
 if st.session_state.page == "form":
 
-    def wk(name):
-        return f"{name}_{lang}"
-
-    previous = st.session_state.get("form_lang")
+    # One widget key per field (not per language), so values survive a language
+    # switch. Option values stay in English (they match the training encoding);
+    # format_func=tr only changes what the user sees.
+    # The widget key includes the language, so the browser builds a fresh widget
+    # when the language changes (otherwise the closed selectbox keeps showing
+    # the old-language text). The real value lives in st.session_state["v_<key>"].
     for key, value in DEFAULTS.items():
-        if previous and previous != lang and f"{key}_{previous}" in st.session_state:
-            st.session_state[wk(key)] = st.session_state[f"{key}_{previous}"]
-        else:
-            st.session_state.setdefault(wk(key), value)
-    st.session_state.form_lang = lang
+        st.session_state.setdefault(f"v_{key}", value)
+
+    def _wkey(key):
+        wkey = f"f_{key}_{lang}"
+        if wkey not in st.session_state:
+            st.session_state[wkey] = st.session_state[f"v_{key}"]
+        return wkey
+
+    def num(label, key, **kw):
+        val = st.number_input(tr(label), key=_wkey(key), **kw)
+        st.session_state[f"v_{key}"] = val
+        return val
+
+    def sel(label, key, options):
+        val = st.selectbox(tr(label), options, key=_wkey(key), format_func=tr)
+        st.session_state[f"v_{key}"] = val
+        return val
 
     with st.form("patient_form"):
 
@@ -1218,38 +1265,33 @@ if st.session_state.page == "form":
         with col1:
             with st.container(border=True):
                 st.markdown(
-                    '<div class="field-group">🧍 Patient Information</div>', unsafe_allow_html=True)
-                age = st.number_input("Age", min_value=1,
-                                      max_value=120, value=50)
-                gender = st.selectbox("Gender", ["Male", "Female"])
-                cp = st.selectbox("Chest Pain Type", list(CP_MAP.keys()))
-                trestbps = st.number_input(
-                    "Resting Blood Pressure", min_value=0, max_value=300, value=120)
-                chol = st.number_input(
-                    "Cholesterol", min_value=0, max_value=700, value=200)
-                fbs = st.selectbox(
-                    "Fasting Blood Sugar > 120 mg/dl", list(FBS_MAP.keys()))
-                restecg = st.selectbox(
-                    "Resting ECG Result", list(RESTECG_MAP.keys()))
+                    f'<div class="field-group">🧍 {tr("Patient Information")}</div>',
+                    unsafe_allow_html=True)
+                num("Age", "age", min_value=1, max_value=120)
+                sel("Gender", "gender", ["Male", "Female"])
+                sel("Chest Pain Type", "cp", list(CP_MAP.keys()))
+                num("Resting Blood Pressure", "trestbps", min_value=0, max_value=300)
+                num("Cholesterol", "chol", min_value=0, max_value=700)
+                sel("Fasting Blood Sugar > 120 mg/dl", "fbs", list(FBS_MAP.keys()))
+                sel("Resting ECG Result", "restecg", list(RESTECG_MAP.keys()))
 
         with col2:
             with st.container(border=True):
                 st.markdown(
-                    '<div class="field-group">🩺 Clinical Measurements</div>', unsafe_allow_html=True)
-                thalach = st.number_input(
-                    "Maximum Heart Rate Achieved", min_value=0, max_value=250, value=150)
-                exang = st.selectbox(
-                    "Exercise Induced Angina", list(EXANG_MAP.keys()))
-                oldpeak = st.number_input(
-                    "Old Peak (ST Depression)", min_value=0.0, max_value=10.0, value=1.0, step=0.1)
-                slope = st.selectbox(
-                    "Slope of Peak Exercise ST", list(SLOPE_MAP.keys()))
-                ca = st.selectbox("Number of Major Vessels",
-                                  ["0", "1", "2", "3", "4"])
-                thal = st.selectbox("Thalassemia", list(THAL_MAP.keys()))
+                    f'<div class="field-group">🩺 {tr("Clinical Measurements")}</div>',
+                    unsafe_allow_html=True)
+                num("Maximum Heart Rate Achieved", "thalach", min_value=0, max_value=250)
+                sel("Exercise Induced Angina", "exang", list(EXANG_MAP.keys()))
+                num("Old Peak (ST Depression)", "oldpeak",
+                    min_value=0.0, max_value=10.0, step=0.1)
+                sel("Slope of Peak Exercise ST", "slope", list(SLOPE_MAP.keys()))
+                sel("Number of Major Vessels", "ca", ["0", "1", "2", "3", "4"])
+                sel("Thalassemia", "thal", list(THAL_MAP.keys()))
 
         submitted = st.form_submit_button(
-            "🔍 Predict", use_container_width=True)
+            f"🔍 {tr('Predict')}", use_container_width=True)
+
+    st.button(tr("Clear form"), on_click=clear_form, use_container_width=True)
 
     # ------------------------------------------------------------
     # PREDICTION (runs on submit, then moves to the result page)
@@ -1257,7 +1299,7 @@ if st.session_state.page == "form":
 
     if submitted:
         try:
-            s = {key: st.session_state[wk(key)] for key in DEFAULTS}
+            s = {key: st.session_state[f"v_{key}"] for key in DEFAULTS}
             sex = 1 if s["gender"] == "Male" else 0
 
             patient = np.array([[
@@ -1278,7 +1320,7 @@ if st.session_state.page == "form":
 
             patient_scaled = scaler.transform(patient)
 
-            with st.spinner("Analysing patient data..."):
+            with st.spinner(tr("Analysing patient data...")):
                 prediction = model.predict(patient_scaled, verbose=0)
             probability = float(prediction[0][0])
 
@@ -1292,9 +1334,9 @@ if st.session_state.page == "form":
                 level = "High"
 
             if probability >= 0.5:
-                title, css_class, conf = f"🔴 {tr('Heart Disease Detected')}", "positive", probability * 100
+                title, css_class, conf = "Heart Disease Detected", "positive", probability * 100
             else:
-                title, css_class, conf = f"🟢 {tr('No Heart Disease Detected')}", "negative", (
+                title, css_class, conf = "No Heart Disease Detected", "negative", (
                     1 - probability) * 100
 
             st.session_state.result = {
@@ -1333,7 +1375,7 @@ else:
     with centre:
         st.markdown(
             f"<div class='result-card {r['css_class']}'>"
-            f"<div class='result-title'>{r['title']}</div>"
+            f"<div class='result-title'>{'🔴' if r['css_class'] == 'positive' else '🟢'} {tr(r['title'])}</div>"
             f"<div class='gauge' style='--p:{r['risk_pct']:.1f}; --c:{color};'>"
             f"<div class='gauge-inner'>"
             f"<div class='gauge-val'>{r['risk_pct']:.1f}%</div>"
@@ -1362,25 +1404,25 @@ else:
     inp = r["inputs"]
     flags = []
     if inp["Resting Blood Pressure"] >= 130:
-        flags.append(f"Resting blood pressure is high ({inp['Resting Blood Pressure']} mm Hg)")
+        flags.append(f"{tr('Resting blood pressure is high')} ({inp['Resting Blood Pressure']} mm Hg)")
     if inp["Cholesterol"] >= 240:
-        flags.append(f"Cholesterol is high ({inp['Cholesterol']} mg/dl)")
+        flags.append(f"{tr('Cholesterol is high')} ({inp['Cholesterol']} mg/dl)")
     if inp["Fasting Blood Sugar > 120"] == "Yes":
-        flags.append("Fasting blood sugar is above 120 mg/dl")
+        flags.append(tr("Fasting blood sugar is above 120 mg/dl"))
     if inp["Exercise Angina"] == "Yes":
-        flags.append("Chest pain occurs during exercise")
+        flags.append(tr("Chest pain occurs during exercise"))
     if float(inp["Old Peak"]) >= 2:
-        flags.append(f"ST depression is elevated ({inp['Old Peak']})")
+        flags.append(f"{tr('ST depression is elevated')} ({inp['Old Peak']})")
     if int(inp["Major Vessels"]) > 0:
-        flags.append(f"{inp['Major Vessels']} major vessel(s) affected")
+        flags.append(f"{inp['Major Vessels']} {tr('major vessel(s) affected')}")
 
     _, flag_col, _ = st.columns([1, 2, 1])
     with flag_col:
         if flags:
-            st.warning("**Values outside the typical range:**\n\n" +
+            st.warning(f"**{tr('Values outside the typical range')}:**\n\n" +
                        "\n".join(f"- {f}" for f in flags))
         else:
-            st.success("All key measurements are within the typical range.")
+            st.success(tr("All key measurements are within the typical range."))
 
     _, btn_col, _ = st.columns([1, 2, 1])
     with btn_col:
@@ -1391,6 +1433,6 @@ else:
             mime="application/pdf",
             width="stretch",
         )
-        if st.button("← New prediction", use_container_width=True):
+        if st.button(f"← {tr('New prediction')}", use_container_width=True):
             st.session_state.page = "form"
             st.rerun()
