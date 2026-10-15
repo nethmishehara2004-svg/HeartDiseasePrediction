@@ -13,6 +13,8 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from tensorflow.keras.models import load_model
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # ============================================================
 # PAGE CONFIG
@@ -32,12 +34,172 @@ st.set_page_config(
 
 @st.cache_resource
 def load_artifacts():
-    model = load_model("heart_model.keras")
-    scaler = joblib.load("scaler.pkl")
+    model = load_model(os.path.join(BASE_DIR, "heart_model.keras"))
+    scaler = joblib.load(os.path.join(BASE_DIR, "scaler.pkl"))
     return model, scaler
 
 
 model, scaler = load_artifacts()
+
+
+# ============================================================
+# TRANSLATIONS (English text is key; supports Sinhala & Tamil)
+# ============================================================
+
+LANGUAGES = {"English": "en", "සිංහල": "si", "தமிழ்": "ta"}
+
+TRANSLATIONS = {
+    "si": {
+        "Heart Disease Prediction System": "හෘද රෝග පුරෝකථන පද්ධතිය",
+        "Enter the 13 patient details to estimate the risk of heart disease":
+            "හෘද රෝග අවදානම ඇස්තමේන්තු කිරීමට රෝගියාගේ තොරතුරු 13 ඇතුළත් කරන්න",
+        "Appearance": "පෙනුම",
+        "Theme": "තේමාව",
+        "Dark": "අඳුරු",
+        "Light": "ආලෝක",
+        "Language": "භාෂාව",
+        "About": "පිළිබඳව",
+        "How to use": "භාවිතා කරන ආකාරය",
+        "Disclaimer": "වියාචනය",
+        "ABOUT_TEXT": "සායනික මිනුම් 13ක් පදනම් කරගෙන, පුහුණු කළ ස්නායුක ජාලයක් මගින් හෘද රෝග ඇතිවීමේ සම්භාවිතාව ඇස්තමේන්තු කරන AI මෙවලමකි.",
+        "HOWTO_TEXT": "1. කාඩ්පත් දෙකම පුරවන්න.<br>2. පුරෝකථනය කරන්න ඔබන්න.<br>3. ප්‍රතිඵලය නව පිටුවක විවෘත වේ.",
+        "DISCLAIMER_TEXT": "මෙම මෙවලම මූලික පරීක්ෂාවක් සඳහා පමණක් උපකාරී වන අතර, එය වෛද්‍ය රෝග විනිශ්චයක් සඳහා ආදේශකයක් නොවේ. සෑම විටම සුදුසුකම් ලත් වෛද්‍යවරයෙකුගෙන් උපදෙස් ලබාගන්න.",
+        "This tool supports screening only and is not a medical diagnosis.":
+            "මෙම මෙවලම මූලික පරීක්ෂාවක් සඳහා පමණක් උපකාරී වන අතර, එය වෛද්‍ය රෝග විනිශ්චයක් සඳහා ආදේශකයක් නොවේ.",
+        "Patient Information": "රෝගී තොරතුරු",
+        "Clinical Measurements": "සායනික මිනුම්",
+        "Predict": "පුරෝකථනය කරන්න",
+        "Clear form": "පෝරමය හිස් කරන්න",
+        "New prediction": "නව පුරෝකථනයක්",
+        "Download report (PDF)": "වාර්තාව බාගන්න (PDF)",
+        "Age": "වයස",
+        "Gender": "ස්ත්‍රී පුරුෂ භාවය",
+        "Male": "පුරුෂ",
+        "Female": "ස්ත්‍රී",
+        "Chest Pain Type": "පපුවේ වේදනා වර්ගය",
+        "Typical Angina": "සාමාන්‍ය ඇන්ජයිනාව",
+        "Atypical Angina": "අසාමාන්‍ය ඇන්ජයිනාව",
+        "Non-anginal Pain": "ඇන්ජයිනා නොවන වේදනාව",
+        "Asymptomatic": "රෝග ලක්ෂණ නොමැති",
+        "Resting Blood Pressure": "විවේක රුධිර පීඩනය",
+        "Cholesterol": "කොලෙස්ටරෝල්",
+        "Fasting Blood Sugar > 120 mg/dl": "නිරාහාර රුධිර සීනි > 120 mg/dL",
+        "Yes": "ඔව්",
+        "No": "නැත",
+        "Resting ECG Result": "විවේක ECG ප්‍රතිඵලය",
+        "Normal": "සාමාන්‍ය",
+        "ST-T Abnormality": "ST-T අසාමාන්‍යතාව",
+        "Left Ventricular Hypertrophy": "වම් හෘද කෝෂිකාවේ අධිවර්ධනය",
+        "Maximum Heart Rate Achieved": "ළඟා වූ උපරිම හෘද ස්පන්දන වේගය",
+        "Exercise Induced Angina": "ව්‍යායාමයෙන් ඇති වන ඇන්ජයිනාව",
+        "Old Peak (ST Depression)": "ST අවපීඩන අගය (ඕල්ඩ් පීක්)",
+        "Slope of Peak Exercise ST": "උපරිම ව්‍යායාමයේදී ST කොටසේ බෑවුම",
+        "Upsloping": "ඉහළට බෑවුම්",
+        "Flat": "සමතලා",
+        "Downsloping": "පහළට බෑවුම්",
+        "Number of Major Vessels": "ප්‍රධාන රුධිර නාල ගණන",
+        "Thalassemia": "තැලසීමියාව",
+        "Fixed Defect": "ස්ථීර දෝෂය",
+        "Reversible Defect": "ප්‍රතිවර්ත්‍ය දෝෂය",
+        "Heart Disease Detected": "හෘද රෝග හඳුනාගෙන ඇත",
+        "No Heart Disease Detected": "හෘද රෝග හඳුනාගෙන නොමැත",
+        "Low risk of heart disease": "හෘද රෝග අවදානම අඩුයි",
+        "Moderate risk of heart disease": "හෘද රෝග අවදානම මධ්‍යමයි",
+        "High risk of heart disease": "හෘද රෝග අවදානම ඉහළයි",
+        "Disease probability": "රෝග සම්භාවිතාව",
+        "Confidence": "ආකෘතියේ නිශ්චිතභාවය",
+        "Model certainty": "ආකෘතියේ නිශ්චිතභාවය",
+        "Risk level": "අවදානම් මට්ටම",
+        "Low": "අඩු",
+        "Moderate": "මධ්‍යම",
+        "High": "ඉහළ",
+        "Patient details used for this prediction": "මෙම පුරෝකථනයට භාවිතා කළ රෝගී තොරතුරු",
+        "Something went wrong": "යම් දෝෂයක් සිදු විය",
+        "Heart Disease Prediction Report": "හෘද රෝග පුරෝකථන වාර්තාව",
+        "Generated on": "සකස් කළ දිනය",
+        "Please consult a qualified doctor for any medical decision.":
+            "වෛද්‍ය තීරණ සඳහා සුදුසුකම් ලත් වෛද්‍යවරයෙකුගෙන් උපදෙස් ලබාගන්න.",
+    },
+    "ta": {
+        "Heart Disease Prediction System": "இதய நோய் முன்கணிப்பு அமைப்பு",
+        "Enter the 13 patient details to estimate the risk of heart disease":
+            "இதய நோய் ஆபத்தை மதிப்பிட நோயாளியின் 13 விவரங்களை உள்ளிடவும்",
+        "Appearance": "தோற்றம்",
+        "Theme": "தீம்",
+        "Dark": "இருண்ட",
+        "Light": "ஒளி",
+        "Language": "மொழி",
+        "About": "பற்றி",
+        "How to use": "பயன்படுத்தும் முறை",
+        "Disclaimer": "மறுப்பு அறிக்கை",
+        "ABOUT_TEXT": "13 மருத்துவ அளவீடுகளின் அடிப்படையில், பயிற்சி பெற்ற நரம்பியல் வலையமைப்பைப் பயன்படுத்தி இதய நோய்க்கான வாய்ப்பை மதிப்பிடும் AI கருவி.",
+        "HOWTO_TEXT": "1. இரு அட்டைகளையும் நிரப்பவும்.<br>2. கணிக்கவும் என்பதை அழுத்தவும்.<br>3. முடிவு புதிய பக்கத்தில் திறக்கும்.",
+        "DISCLAIMER_TEXT": "இந்தக் கருவி ஆரம்பநிலைப் பரிசோதனைக்கு மட்டுமே உதவுகிறது; இது மருத்துவ நோயறிதலுக்கு மாற்றாகாது. எப்போதும் தகுதிவாய்ந்த மருத்துவரின் ஆலோசனையைப் பெறவும்.",
+        "This tool supports screening only and is not a medical diagnosis.":
+            "இந்தக் கருவி ஆரம்பநிலைப் பரிசோதனைக்கு மட்டுமே உதவுகிறது; இது மருத்துவ நோயறிதலுக்கு மாற்றாகாது.",
+        "Patient Information": "நோயாளி விவரங்கள்",
+        "Clinical Measurements": "மருத்துவ அளவீடுகள்",
+        "Predict": "கணிக்கவும்",
+        "Clear form": "படிவத்தை அழி",
+        "New prediction": "புதிய கணிப்பு",
+        "Download report (PDF)": "அறிக்கையைப் பதிவிறக்கு (PDF)",
+        "Age": "வயது",
+        "Gender": "பாலினம்",
+        "Male": "ஆண்",
+        "Female": "பெண்",
+        "Chest Pain Type": "நெஞ்சு வலி வகை",
+        "Typical Angina": "வழக்கமான ஆஞ்சினா",
+        "Atypical Angina": "வழக்கத்திற்கு மாறான ஆஞ்சினா",
+        "Non-anginal Pain": "ஆஞ்சினா அல்லாத வலி",
+        "Asymptomatic": "அறிகுறிகள் இல்லாத நிலை",
+        "Resting Blood Pressure": "ஓய்வு நிலை இரத்த அழுத்தம்",
+        "Cholesterol": "கொலஸ்ட்ரால்",
+        "Fasting Blood Sugar > 120 mg/dl": "உண்ணாவிரத இரத்தச் சர்க்கரை > 120 mg/dL",
+        "Yes": "ஆம்",
+        "No": "இல்லை",
+        "Resting ECG Result": "ஓய்வு நிலை ECG முடிவு",
+        "Normal": "இயல்பானது",
+        "ST-T Abnormality": "ST-T அசாதாரணம்",
+        "Left Ventricular Hypertrophy": "இடது இதயக் கீழறை தசை தடிப்பு",
+        "Maximum Heart Rate Achieved": "அடைந்த அதிகபட்ச இதயத் துடிப்பு",
+        "Exercise Induced Angina": "உடற்பயிற்சியால் ஏற்படும் ஆஞ்சினா",
+        "Old Peak (ST Depression)": "ST தாழ்வு அளவு (ஓல்ட் பீக்)",
+        "Slope of Peak Exercise ST": "உச்ச உடற்பயிற்சியின் போது ST பகுதியின் சரிவு",
+        "Upsloping": "மேல்நோக்கிய சரிவு",
+        "Flat": "தட்டையான சரிவு",
+        "Downsloping": "கீழ்நோக்கிய சரிவு",
+        "Number of Major Vessels": "முக்கிய இரத்த நாளங்களின் எண்ணிக்கை",
+        "Thalassemia": "தலசீமியா",
+        "Fixed Defect": "நிலையான குறைபாடு",
+        "Reversible Defect": "மீளக்கூடிய குறைபாடு",
+        "Heart Disease Detected": "இதய நோய் கண்டறியப்பட்டது",
+        "No Heart Disease Detected": "இதய நோய் கண்டறியப்படவில்லை",
+        "Low risk of heart disease": "இதய நோய் ஆபத்து குறைவு",
+        "Moderate risk of heart disease": "இதய நோய் ஆபத்து மிதமானது",
+        "High risk of heart disease": "இதய நோய் ஆபத்து அதிகம்",
+        "Disease probability": "நோய் நிகழ்தகவு",
+        "Confidence": "மாதிரியின் உறுதிநிலை",
+        "Model certainty": "மாதிரியின் உறுதிநிலை",
+        "Risk level": "ஆபத்து நிலை",
+        "Low": "குறைவு",
+        "Moderate": "மிதமான",
+        "High": "அதிகம்",
+        "Patient details used for this prediction": "இந்தக் கணிப்புக்குப் பயன்படுத்தப்பட்ட நோயாளி விவரங்கள்",
+        "Something went wrong": "ஏதோ தவறு நடந்துவிட்டது",
+        "Heart Disease Prediction Report": "இதய நோய் முன்கணிப்பு அறிக்கை",
+        "Generated on": "உருவாக்கிய தேதி",
+        "Please consult a qualified doctor for any medical decision.":
+            "எந்த மருத்துவ முடிவுக்கும் தகுதிவாய்ந்த மருத்துவரை அணுகவும்.",
+    },
+}
+
+EN_TEXT = {
+    "ABOUT_TEXT": "An AI-based tool that estimates the likelihood of heart disease "
+                  "from 13 clinical measurements using a trained neural network.",
+    "HOWTO_TEXT": "1. Fill in both cards.<br>2. Click Predict.<br>3. The result opens on a new page.",
+    "DISCLAIMER_TEXT": "This tool supports screening only. It is not a medical diagnosis. "
+                       "Always consult a qualified doctor.",
+}
 
 
 # ============================================================
@@ -55,52 +217,94 @@ if "page" not in st.session_state:
 
 THEMES = {
     "Dark": {
-        "bg": "#0b0e14", "bg_grad": "radial-gradient(circle at 20% 0%, #1a1020 0%, #0b0e14 45%)",
-        "overlay": "rgba(8,10,16,0.72)", "card": "rgba(18,22,31,0.93)", "solid": "#12161f",
-        "card2": "#1a2030", "border": "#2e3648", "text": "#f1f3f8", "muted": "#aab2c2",
-        "accent": "#ff5c5c", "accent_text": "#ff8a8a", "track": "#232838",
-        "good": "#4ade9c", "bad": "#ff6b6b", "warn": "#facc15", "side": "#0f131c",
+        "bg": "#071426", "bg_grad": "radial-gradient(circle at 20% 0%, #0d1e38 0%, #071426 45%)",
+        "overlay": "rgba(7,20,38,0.72)", "card": "#132238", "solid": "#132238",
+        "card2": "#1E293B", "border": "#334155", "heading": "#F8FAFC",
+        "text": "#CBD5E1", "muted": "#94A3B8",
+        "input_bg": "#1E293B", "input_text": "#F8FAFC",
+        "menu_hover": "#2B394E", "menu_hover_text": "#60A5FA",
+        "accent": "#60A5FA", "accent_text": "#60A5FA", "track": "#1E293B",
+        "btn_bg": "#2563EB", "btn_text": "#FFFFFF",
+        "good": "#34D399", "bad": "#F87171", "warn": "#FBBF24", "side": "#132238",
     },
     "Light": {
-        "bg": "#f4f6fb", "bg_grad": "linear-gradient(160deg, #fdf2f3 0%, #f4f6fb 50%)",
-        "overlay": "rgba(255,255,255,0.68)", "card": "rgba(255,255,255,0.95)", "solid": "#ffffff",
-        "card2": "#eef1f7", "border": "#d5dbe8", "text": "#1b2233", "muted": "#5b6578",
-        "accent": "#e63946", "accent_text": "#d62839", "track": "#e3e8f2",
-        "good": "#15935f", "bad": "#d62839", "warn": "#c79100", "side": "#ffffff",
+        "bg": "#F3F8FF", "bg_grad": "linear-gradient(160deg, #e8f0fe 0%, #F3F8FF 50%)",
+        "overlay": "rgba(243,248,255,0.70)", "card": "#FFFFFF", "solid": "#FFFFFF",
+        "card2": "#F3F8FF", "border": "#CBD5E1", "heading": "#12304A",
+        "text": "#475569", "muted": "#64748B",
+        "input_bg": "#FFFFFF", "input_text": "#12304A",
+        "menu_hover": "#EBF3FE", "menu_hover_text": "#2563EB",
+        "accent": "#2563EB", "accent_text": "#2563EB", "track": "#E2E8F0",
+        "btn_bg": "#2563EB", "btn_text": "#FFFFFF",
+        "good": "#15803D", "bad": "#DC2626", "warn": "#D97706", "side": "#FFFFFF",
     },
 }
 FONT_PX = {"Small": 14, "Medium": 18, "Large": 22}
 
 
-def load_background(uploaded):
-    """Return (mime, base64) for the uploaded photo, or a local background file if present."""
+@st.cache_data
+def _read_image_b64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+
+def load_background(theme_name="Dark", uploaded=None):
+    """Return (mime, base64) for the uploaded photo, or a local theme-specific background file."""
     if uploaded is not None:
         if uploaded.size > 4 * 1024 * 1024:
             st.sidebar.warning(
                 "Photo is larger than 4 MB. Please use a smaller image.")
             return None
         return uploaded.type, base64.b64encode(uploaded.getvalue()).decode()
-    here = os.path.dirname(os.path.abspath(__file__))
-    for name, mime in (("background.jpg", "image/jpeg"), ("background.jpeg", "image/jpeg"), ("background.png", "image/png")):
-        # looks next to app.py, wherever Streamlit was started
+
+    here = BASE_DIR
+    prefix = "dark_bg" if theme_name == "Dark" else "light_bg"
+    candidates = [
+        (f"{prefix}.png", "image/png"),
+        (f"{prefix}.jpg", "image/jpeg"),
+        (f"{prefix}.jpeg", "image/jpeg"),
+        (f"{prefix}.webp", "image/webp"),
+        ("background.jpg", "image/jpeg"),
+        ("background.jpeg", "image/jpeg"),
+        ("background.png", "image/png"),
+    ]
+
+    for name, mime in candidates:
         path = os.path.join(here, name)
         if os.path.exists(path):
-            with open(path, "rb") as f:
-                return mime, base64.b64encode(f.read()).decode()
+            return mime, _read_image_b64(path)
     return None
 
 
-with st.sidebar:
-    st.markdown("<div class='side-title'>Appearance</div>",
-                unsafe_allow_html=True)
-    theme_name = st.radio("Theme", ["Dark", "Light"], horizontal=True)
+# ============================================================
+# TOP HEADER BAR: LANGUAGE & THEME
+# ============================================================
+
+top_lang, top_theme = st.columns([3, 2], gap="large")
+
+with top_lang:
+    lang_name = st.radio("Language / භාෂාව / மொழி", list(LANGUAGES.keys()),
+                         horizontal=True, key="lang_name")
+
+lang = LANGUAGES[lang_name]
+
+
+def tr(text):
+    """Translate into chosen language or fallback to English."""
+    if lang == "en":
+        return EN_TEXT.get(text, text)
+    return TRANSLATIONS.get(lang, {}).get(text, EN_TEXT.get(text, text))
+
+
+with top_theme:
+    theme_name = st.radio(tr("Theme"), ["Dark", "Light"], horizontal=True,
+                          format_func=tr, key="theme_name")
 
 size_name = "Large"   # fixed font size
-# background comes from background.jpg / background.png in the project folder
 photo = None
 
 t = THEMES[theme_name]
-bg = load_background(photo)
+bg = load_background(theme_name, photo)
 
 
 # ============================================================
@@ -121,13 +325,16 @@ st.markdown(
     <style>
     :root {{
         --bg:{t['bg']}; --card:{t['card']}; --solid:{t['solid']}; --card2:{t['card2']};
-        --border:{t['border']}; --text:{t['text']}; --muted:{t['muted']};
-        --accent:{t['accent']}; --accent-text:{t['accent_text']}; --track:{t['track']};
-        --good:{t['good']}; --bad:{t['bad']}; --warn:{t['warn']};
+        --border:{t['border']}; --heading:{t['heading']}; --text:{t['text']}; --muted:{t['muted']};
+        --input-bg:{t['input_bg']}; --input-text:{t['input_text']};
+        --menu-hover:{t['menu_hover']}; --menu-hover-text:{t['menu_hover_text']};
+        --accent:{t['accent']}; --accent-text:{t['accent_text']};
+        --btn-bg:{t['btn_bg']}; --btn-text:{t['btn_text']};
+        --track:{t['track']}; --good:{t['good']}; --bad:{t['bad']}; --warn:{t['warn']};
     }}
     html {{font-size: {FONT_PX[size_name]}px !important;}}
     {bg_rule}
-    section[data-testid="stSidebar"] {{background: {t['side']};}}
+    section[data-testid="stSidebar"] {{background: {t['side']} !important;}}
     </style>
     """,
     unsafe_allow_html=True
@@ -136,14 +343,14 @@ st.markdown(
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
 
     *, *::before, *::after {
         box-sizing: border-box !important;
     }
 
     html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', 'Noto Sans Sinhala', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     /* ---------- BASE RESPONSIVE ROOT FONT SIZES (big on desktop) ---------- */
@@ -298,7 +505,7 @@ st.markdown(
         font-size: 1rem;
     }
     .side-title {
-        color: var(--accent-text);
+        color: var(--heading) !important;
         font-size: 0.9rem;
         font-weight: 700;
         letter-spacing: 0.09em;
@@ -306,7 +513,7 @@ st.markdown(
         margin: 1.4rem 0 0.6rem 0;
     }
     .side-text {
-        color: var(--muted);
+        color: var(--text);
         font-size: 0.98rem;
         line-height: 1.6;
     }
@@ -350,14 +557,14 @@ st.markdown(
         overflow-wrap: break-word;
     }
     .hero-title {
-        color: var(--accent) !important;
+        color: var(--heading) !important;
         font-size: clamp(1.35rem, 4vw + 0.3rem, 2.4rem);
         font-weight: 800;
         letter-spacing: -0.5px;
         line-height: 1.25;
     }
     .hero-sub {
-        color: var(--muted);
+        color: var(--text);
         font-size: clamp(0.85rem, 2vw + 0.3rem, 1.05rem);
         margin-top: 0.4rem;
     }
@@ -426,7 +633,7 @@ st.markdown(
         font-weight: 700;
         letter-spacing: 0.09em;
         text-transform: uppercase;
-        color: var(--accent-text);
+        color: var(--heading);
         margin: 0.2rem 0 0.9rem 0;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid var(--border);
@@ -439,10 +646,10 @@ st.markdown(
     }
 
     div[data-testid="stNumberInput"] input {
-        background-color: var(--card2) !important;
+        background-color: var(--input-bg) !important;
         border: 1.5px solid var(--border) !important;
         border-radius: 10px !important;
-        color: var(--text) !important;
+        color: var(--input-text) !important;
         font-weight: 500;
         font-size: 1rem;
         padding: 0.6rem 0.7rem !important;
@@ -450,17 +657,17 @@ st.markdown(
     }
     div[data-testid="stNumberInput"] input:focus {
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px rgba(255,92,92,0.18) !important;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.2) !important;
     }
     div[data-testid="stNumberInput"] div[data-baseweb="input"],
     div[data-testid="stNumberInput"] div[data-baseweb="base-input"] {
-        background-color: var(--card2) !important;
+        background-color: var(--input-bg) !important;
         border-radius: 10px !important;
     }
     div[data-testid="stNumberInput"] button {
-        background-color: var(--card2) !important;
+        background-color: var(--input-bg) !important;
         border: 1.5px solid var(--border) !important;
-        color: var(--text) !important;
+        color: var(--input-text) !important;
         min-width: 40px !important;
         min-height: 40px !important;
     }
@@ -468,48 +675,184 @@ st.markdown(
         border-color: var(--accent) !important;
     }
 
-    /* Dropdowns */
+    /* ============================================================
+       SELECTBOX INPUT BOX (LIGHT & DARK MODE)
+       ============================================================ */
+    div[data-testid="stSelectbox"] {
+        width: 100% !important;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Outer input box container */
+    div[data-testid="stSelectbox"] > div,
+    div[data-testid="stSelectbox"] div[role="group"],
+    div[data-testid="stSelectbox"] [class*="react-aria-Group"],
+    div[data-testid="stSelectbox"] [class*="e1fp86qc0"],
+    div[data-testid="stSelectbox"] div[data-baseweb="select"],
+    div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="select"] > div > div {
-        background-color: var(--card2) !important;
-        color: var(--text) !important;
-    }
-    div[data-baseweb="select"] > div {
+        background-color: var(--input-bg) !important;
+        background: var(--input-bg) !important;
         border: 1.5px solid var(--border) !important;
         border-radius: 10px !important;
-        font-weight: 500;
-        font-size: 1rem;
-        min-height: 44px !important;
-        align-items: center;
+        color: var(--input-text) !important;
     }
-    div[data-baseweb="select"] * {color: var(--text) !important;}
-    div[data-baseweb="select"] svg {fill: var(--text) !important;}
+
+    /* Inner input text & placeholder */
+    div[data-testid="stSelectbox"] input,
+    div[data-testid="stSelectbox"] [class*="e1fp86qc1"],
+    div[data-baseweb="select"] input {
+        background: transparent !important;
+        background-color: transparent !important;
+        color: var(--input-text) !important;
+        font-weight: 500 !important;
+        font-size: 1rem !important;
+    }
+
+    /* Dropdown arrow icon / button */
+    div[data-testid="stSelectbox"] button,
+    div[data-testid="stSelectbox"] [class*="e1fp86qc2"],
+    div[data-testid="stSelectbox"] [class*="e1fp86qc3"],
+    div[data-testid="stSelectbox"] svg,
+    div[data-baseweb="select"] svg {
+        background: transparent !important;
+        background-color: transparent !important;
+        color: var(--input-text) !important;
+        fill: var(--input-text) !important;
+    }
+
+    /* Focus state */
+    div[data-testid="stSelectbox"] > div:focus-within,
+    div[data-testid="stSelectbox"] div[data-focus-within],
     div[data-baseweb="select"]:focus-within > div {
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px rgba(255,92,92,0.18) !important;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.2) !important;
     }
-    div[data-baseweb="popover"] > div, div[data-baseweb="popover"] ul,
-    div[data-baseweb="menu"] {
-        background-color: var(--solid) !important;
-        border-radius: 10px !important;
+
+    /* ============================================================
+       DROPDOWN MENU POPUP (LIGHT & DARK MODE)
+       ============================================================ */
+    [data-testid="stSelectboxVirtualDropdown"],
+    [data-testid="stSelectboxVirtualDropdown"] > div,
+    [data-testid="stSelectboxVirtualDropdown"] div,
+    [data-testid="stSelectboxVirtualDropdown"] ul,
+    [class*="e1fp86qc4"],
+    [class*="e1fp86qc5"],
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="popover"] div,
+    div[data-baseweb="popover"] ul,
+    div[data-baseweb="popover"] [data-baseweb="menu"],
+    div[data-baseweb="popover"] [role="listbox"],
+    ul[data-baseweb="menu"],
+    ul[role="listbox"] {
+        background-color: var(--input-bg) !important;
+        background: var(--input-bg) !important;
+        color: var(--input-text) !important;
+        border-color: var(--border) !important;
+    }
+
+    [data-testid="stSelectboxVirtualDropdown"],
+    div[data-baseweb="popover"] > div {
+        border: 1.5px solid var(--border) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        overflow: hidden !important;
         max-width: 90vw !important;
     }
-    div[data-baseweb="popover"] li, div[data-baseweb="popover"] li * {color: var(--text) !important;}
-    div[data-baseweb="popover"] li:hover {background-color: var(--card2) !important;}
+
+    /* Option Items (Default State) */
+    [data-testid="stSelectboxVirtualDropdown"] li,
+    [data-testid="stSelectboxVirtualDropdown"] [class*="e1fp86qc7"],
+    [data-testid="stSelectboxVirtualDropdown"] span,
+    [data-testid="stSelectboxVirtualDropdown"] div,
+    div[data-baseweb="popover"] li,
+    div[data-baseweb="popover"] li > div,
+    div[data-baseweb="popover"] li > span,
+    div[data-baseweb="popover"] [role="option"],
+    div[data-baseweb="popover"] [role="option"] > div,
+    div[data-baseweb="popover"] [data-baseweb="menu-item"],
+    ul[role="listbox"] li,
+    li[role="option"] {
+        background-color: var(--input-bg) !important;
+        background: var(--input-bg) !important;
+        color: var(--input-text) !important;
+    }
+
+    /* Inner item highlight container */
+    [data-testid="stSelectboxVirtualDropdown"] [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] [class*="e1fp86qc8"] {
+        background-color: transparent !important;
+        background: transparent !important;
+        color: var(--input-text) !important;
+    }
+
+    [data-testid="stSelectboxVirtualDropdown"] * {
+        color: var(--input-text) !important;
+    }
+
+    /* Option Items (Hover, Focused, Selected State) */
+    [data-testid="stSelectboxVirtualDropdown"] li:hover [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] li[data-hovered] [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] li[data-focused] [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] [class*="e1fp86qc7"]:hover [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] [class*="e1fp86qc7"][data-hovered] [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] [class*="e1fp86qc7"][data-focused] [data-item-hl],
+    [data-testid="stSelectboxVirtualDropdown"] [data-item-hl]:hover,
+    div[data-baseweb="popover"] li:hover,
+    div[data-baseweb="popover"] li:hover > div,
+    div[data-baseweb="popover"] li[aria-selected="true"],
+    div[data-baseweb="popover"] li[aria-selected="true"] > div,
+    div[data-baseweb="popover"] [role="option"]:hover,
+    div[data-baseweb="popover"] [role="option"]:hover > div,
+    div[data-baseweb="popover"] [role="option"][aria-selected="true"],
+    div[data-baseweb="popover"] [role="option"][aria-selected="true"] > div,
+    ul[role="listbox"] li:hover,
+    ul[role="listbox"] li[aria-selected="true"],
+    li[role="option"]:hover,
+    li[role="option"][aria-selected="true"] {
+        background-color: var(--menu-hover) !important;
+        background: var(--menu-hover) !important;
+        color: var(--menu-hover-text) !important;
+    }
+
+    [data-testid="stSelectboxVirtualDropdown"] li:hover *,
+    [data-testid="stSelectboxVirtualDropdown"] li[data-hovered] *,
+    [data-testid="stSelectboxVirtualDropdown"] li[data-focused] *,
+    div[data-baseweb="popover"] li:hover *,
+    div[data-baseweb="popover"] li[aria-selected="true"] * {
+        color: var(--menu-hover-text) !important;
+    }
+
+    /* Custom scrollbar in dropdown menu */
+    [data-testid="stSelectboxVirtualDropdown"] ul::-webkit-scrollbar,
+    [data-testid="stSelectboxVirtualDropdown"] div::-webkit-scrollbar,
+    div[data-baseweb="popover"] ul::-webkit-scrollbar,
+    div[data-baseweb="popover"] div::-webkit-scrollbar {
+        width: 6px;
+    }
+    [data-testid="stSelectboxVirtualDropdown"] ul::-webkit-scrollbar-thumb,
+    [data-testid="stSelectboxVirtualDropdown"] div::-webkit-scrollbar-thumb,
+    div[data-baseweb="popover"] ul::-webkit-scrollbar-thumb,
+    div[data-baseweb="popover"] div::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
 
     /* ---------- BUTTONS ---------- */
     .stFormSubmitButton > button,
     div[data-testid="stButton"] > button,
     div[data-testid="stDownloadButton"] > button {
-        background: linear-gradient(120deg, #ff5c5c, #e63946);
-        color: white;
+        background: var(--btn-bg) !important;
+        color: var(--btn-text) !important;
         font-weight: 700;
         font-size: clamp(1rem, 2.5vw, 1.15rem);
         padding: 0.75rem 1rem;
         border-radius: 12px;
         border: none;
-        box-shadow: 0 8px 24px rgba(230,57,70,0.35);
-        transition: transform 0.15s ease, background-color 0.2s ease;
+        box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+        transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         margin-top: 0.6rem;
         width: 100% !important;
         min-height: 48px !important;
@@ -521,13 +864,15 @@ st.markdown(
     div[data-testid="stButton"] > button:hover,
     div[data-testid="stDownloadButton"] > button:hover {
         transform: translateY(-2px);
-        color: white;
+        background: #1D4ED8 !important;
+        color: var(--btn-text) !important;
         border: none;
+        box-shadow: 0 10px 28px rgba(37,99,235,0.45);
     }
     .stFormSubmitButton > button p,
     div[data-testid="stButton"] > button p,
     div[data-testid="stDownloadButton"] > button p {
-        color: white !important;
+        color: var(--btn-text) !important;
         margin: 0 !important;
     }
 
@@ -555,7 +900,7 @@ st.markdown(
     .result-title {
         font-size: clamp(1.2rem, 3.8vw, 1.6rem);
         font-weight: 800;
-        color: var(--text);
+        color: var(--heading);
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
@@ -581,7 +926,7 @@ st.markdown(
         max-width: 48vw;
         max-height: 48vw;
         border-radius: 50%;
-        background: var(--solid);
+        background: var(--card);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -591,7 +936,7 @@ st.markdown(
     .gauge-val {
         font-size: clamp(1.4rem, 4.5vw, 2rem);
         font-weight: 800;
-        color: var(--text);
+        color: var(--heading);
     }
     .gauge-lbl {
         font-size: clamp(0.75rem, 2vw, 0.9rem);
@@ -614,7 +959,7 @@ st.markdown(
     .m-val {
         font-size: clamp(1.1rem, 3.5vw, 1.5rem);
         font-weight: 800;
-        color: var(--text);
+        color: var(--heading);
     }
     .m-lbl {
         font-size: clamp(0.75rem, 2vw, 0.9rem);
@@ -648,7 +993,7 @@ st.markdown(
         font-weight: 700;
         letter-spacing: 0.09em;
         text-transform: uppercase;
-        color: var(--accent-text);
+        color: var(--heading);
         margin-bottom: 0.8rem;
     }
     .sum-grid {
@@ -681,7 +1026,15 @@ st.markdown(
         color: var(--text);
         text-align: right;
         white-space: nowrap;
-    }
+=======
+    .sum-card {background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+        padding: 1.4rem 1.8rem; margin-top: 1.2rem;}
+    .sum-title {font-size: 0.9rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+        color: var(--accent-text); margin-bottom: 0.8rem;}
+    .sum-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 2.5rem;}
+    .sum-row {display: flex; justify-content: space-between; padding: 0.45rem 0;
+        border-bottom: 1px solid var(--border); font-size: 1rem; color: var(--muted);}
+    .sum-row b {color: var(--text);}
 
     /* ---------- DROPDOWNS: white in Light mode, dark in Dark mode ---------- */
     div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] ~ * {
@@ -693,45 +1046,11 @@ st.markdown(
         background-color: var(--solid) !important;
         color: var(--text) !important;
     }
-    div[data-testid="stSelectbox"] div[data-baseweb="select"],
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div,
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] input {
-        background-color: var(--solid) !important;
-        color: var(--text) !important;
-        -webkit-text-fill-color: var(--text) !important;
-    }
     div[data-testid="stSelectbox"] svg {fill: var(--text) !important;}
     ul[role="listbox"], li[role="option"] {
         background-color: var(--solid) !important;
         color: var(--text) !important;
-    }
-
-    /* ---------- DROPDOWN OPEN LIST (the popup menu): white in Light, dark in Dark ---------- */
-    div[data-baseweb="popover"],
-    div[data-baseweb="popover"] *,
-    div[data-baseweb="menu"],
-    div[data-baseweb="menu"] *,
-    div[role="listbox"],
-    div[role="listbox"] *,
-    ul[role="listbox"] *,
-    div[data-testid="stSelectboxVirtualDropdown"],
-    div[data-testid="stSelectboxVirtualDropdown"] * {
-        background-color: var(--solid) !important;
-        color: var(--text) !important;
-    }
-    div[data-baseweb="popover"] {
-        border: 1.5px solid var(--border) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
-    }
-    /* hovered and selected option highlight */
-    div[data-baseweb="popover"] [role="option"]:hover,
-    div[data-baseweb="popover"] [role="option"][aria-selected="true"],
-    div[data-baseweb="popover"] li:hover,
-    div[role="listbox"] [role="option"]:hover,
-    div[role="listbox"] [role="option"][aria-selected="true"] {
-        background-color: var(--card2) !important;
+>>>>>>> origin/main
     }
     </style>
     """,
@@ -745,14 +1064,12 @@ st.markdown(
 
 with st.sidebar:
     st.markdown(
-        "<div class='side-title'>About</div>"
-        "<div class='side-text'>An AI-based tool that estimates the likelihood of heart disease "
-        "from 13 clinical measurements using a trained neural network.</div>"
-        "<div class='side-title'>How to use</div>"
-        "<div class='side-text'>1. Fill in both cards.<br>2. Click Predict.<br>3. The result opens on a new page.</div>"
-        "<div class='side-title'>Disclaimer</div>"
-        "<div class='side-text'>This tool supports screening only. It is not a medical diagnosis. "
-        "Always consult a qualified doctor.</div>",
+        f"<div class='side-title'>{tr('About')}</div>"
+        f"<div class='side-text'>{tr('ABOUT_TEXT')}</div>"
+        f"<div class='side-title'>{tr('How to use')}</div>"
+        f"<div class='side-text'>{tr('HOWTO_TEXT')}</div>"
+        f"<div class='side-title'>{tr('Disclaimer')}</div>"
+        f"<div class='side-text'>{tr('DISCLAIMER_TEXT')}</div>",
         unsafe_allow_html=True
     )
 
@@ -763,8 +1080,8 @@ with st.sidebar:
 
 st.markdown(
     "<div class='hero'>"
-    "<div class='hero-title'>❤️ Heart Disease Prediction System</div>"
-    "<div class='hero-sub'>Enter the 13 patient details to estimate the risk of heart disease</div>"
+    f"<div class='hero-title'>❤️ {tr('Heart Disease Prediction System')}</div>"
+    f"<div class='hero-sub'>{tr('Enter the 13 patient details to estimate the risk of heart disease')}</div>"
     "</div>",
     unsafe_allow_html=True
 )
@@ -805,6 +1122,29 @@ THAL_MAP = {
 
 LEVEL_COLOUR = {"Low": "good", "Moderate": "warn", "High": "bad"}
 
+FIELDS = [
+    ("age", "Age"), ("gender", "Gender"), ("cp", "Chest Pain Type"),
+    ("trestbps", "Resting Blood Pressure"), ("chol", "Cholesterol"),
+    ("fbs", "Fasting Blood Sugar > 120 mg/dl"), ("restecg", "Resting ECG Result"),
+    ("thalach", "Maximum Heart Rate Achieved"), ("exang", "Exercise Induced Angina"),
+    ("oldpeak", "Old Peak (ST Depression)"), ("slope", "Slope of Peak Exercise ST"),
+    ("ca", "Number of Major Vessels"), ("thal", "Thalassemia"),
+]
+
+DEFAULTS = {
+    "age": 50, "gender": "Male", "cp": "Typical Angina", "trestbps": 120,
+    "chol": 200, "fbs": "No", "restecg": "Normal", "thalach": 150,
+    "exang": "No", "oldpeak": 1.0, "slope": "Upsloping", "ca": "0",
+    "thal": "Normal",
+}
+
+
+def clear_form():
+    """Reset every input to default values."""
+    for code in LANGUAGES.values():
+        for key, value in DEFAULTS.items():
+            st.session_state[f"{key}_{code}"] = value
+
 
 # ============================================================
 # DOWNLOADABLE REPORT (PDF)
@@ -818,8 +1158,7 @@ def build_report_pdf(r):
     generated = datetime.now().strftime("%d %B %Y, %H:%M")
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "t", parent=styles["Title"], textColor=colors.HexColor("#e63946"))
+    title_style = ParagraphStyle("t", parent=styles["Title"], textColor=colors.HexColor("#e63946"))
     meta_style = ParagraphStyle("m", parent=styles["Normal"], textColor=colors.HexColor("#5b6578"),
                                 alignment=1, spaceAfter=14)
     result_style = ParagraphStyle(
@@ -886,6 +1225,17 @@ def build_report_pdf(r):
 
 if st.session_state.page == "form":
 
+    def wk(name):
+        return f"{name}_{lang}"
+
+    previous = st.session_state.get("form_lang")
+    for key, value in DEFAULTS.items():
+        if previous and previous != lang and f"{key}_{previous}" in st.session_state:
+            st.session_state[wk(key)] = st.session_state[f"{key}_{previous}"]
+        else:
+            st.session_state.setdefault(wk(key), value)
+    st.session_state.form_lang = lang
+
     with st.form("patient_form"):
 
         col1, col2 = st.columns(2, gap="large")
@@ -894,49 +1244,37 @@ if st.session_state.page == "form":
             with st.container(border=True):
                 st.markdown(
                     '<div class="field-group">🧍 Patient Information</div>', unsafe_allow_html=True)
-                age = st.number_input("Age (years)", min_value=1,
-                                      max_value=120, value=50,
-                                      help="Patient age in years.")
+                age = st.number_input("Age", min_value=1,
+                                      max_value=120, value=50)
                 gender = st.selectbox("Gender", ["Male", "Female"])
-                cp = st.selectbox("Chest Pain Type", list(CP_MAP.keys()),
-                                  help="Type of chest pain the patient experiences.")
+                cp = st.selectbox("Chest Pain Type", list(CP_MAP.keys()))
                 trestbps = st.number_input(
-                    "Resting Blood Pressure (mm Hg)", min_value=0, max_value=300, value=120,
-                    help="Systolic blood pressure at rest. Typical: 90–120 mm Hg.")
+                    "Resting Blood Pressure", min_value=0, max_value=300, value=120)
                 chol = st.number_input(
-                    "Cholesterol (mg/dl)", min_value=0, max_value=700, value=200,
-                    help="Serum cholesterol. Desirable: below 200 mg/dl.")
+                    "Cholesterol", min_value=0, max_value=700, value=200)
                 fbs = st.selectbox(
-                    "Fasting Blood Sugar > 120 mg/dl", list(FBS_MAP.keys()),
-                    help="Is fasting blood sugar higher than 120 mg/dl?")
+                    "Fasting Blood Sugar > 120 mg/dl", list(FBS_MAP.keys()))
                 restecg = st.selectbox(
-                    "Resting ECG Result", list(RESTECG_MAP.keys()),
-                    help="Result of the resting electrocardiogram.")
+                    "Resting ECG Result", list(RESTECG_MAP.keys()))
 
         with col2:
             with st.container(border=True):
                 st.markdown(
                     '<div class="field-group">🩺 Clinical Measurements</div>', unsafe_allow_html=True)
                 thalach = st.number_input(
-                    "Maximum Heart Rate Achieved (bpm)", min_value=0, max_value=250, value=150,
-                    help="Highest heart rate reached during the exercise test.")
+                    "Maximum Heart Rate Achieved", min_value=0, max_value=250, value=150)
                 exang = st.selectbox(
-                    "Exercise Induced Angina", list(EXANG_MAP.keys()),
-                    help="Did exercise cause chest pain?")
+                    "Exercise Induced Angina", list(EXANG_MAP.keys()))
                 oldpeak = st.number_input(
-                    "Old Peak (ST Depression)", min_value=0.0, max_value=10.0, value=1.0, step=0.1,
-                    help="ST depression caused by exercise relative to rest. Typical: 0–1.")
+                    "Old Peak (ST Depression)", min_value=0.0, max_value=10.0, value=1.0, step=0.1)
                 slope = st.selectbox(
-                    "Slope of Peak Exercise ST", list(SLOPE_MAP.keys()),
-                    help="Shape of the ST segment at peak exercise.")
+                    "Slope of Peak Exercise ST", list(SLOPE_MAP.keys()))
                 ca = st.selectbox("Number of Major Vessels",
-                                  ["0", "1", "2", "3", "4"],
-                                  help="Major vessels coloured by fluoroscopy (0–4).")
-                thal = st.selectbox("Thalassemia", list(THAL_MAP.keys()),
-                                    help="Result of the thallium stress test.")
+                                  ["0", "1", "2", "3", "4"])
+                thal = st.selectbox("Thalassemia", list(THAL_MAP.keys()))
 
         submitted = st.form_submit_button(
-            "🔍 Predict", width="stretch")
+            "🔍 Predict", use_container_width=True)
 
     # ------------------------------------------------------------
     # PREDICTION (runs on submit, then moves to the result page)
@@ -944,22 +1282,23 @@ if st.session_state.page == "form":
 
     if submitted:
         try:
-            sex = 1 if gender == "Male" else 0
+            s = {key: st.session_state[wk(key)] for key in DEFAULTS}
+            sex = 1 if s["gender"] == "Male" else 0
 
             patient = np.array([[
-                float(age),
+                float(s["age"]),
                 sex,
-                CP_MAP[cp],
-                float(trestbps),
-                float(chol),
-                FBS_MAP[fbs],
-                RESTECG_MAP[restecg],
-                float(thalach),
-                EXANG_MAP[exang],
-                float(oldpeak),
-                SLOPE_MAP[slope],
-                int(ca),
-                THAL_MAP[thal]
+                CP_MAP[s["cp"]],
+                float(s["trestbps"]),
+                float(s["chol"]),
+                FBS_MAP[s["fbs"]],
+                RESTECG_MAP[s["restecg"]],
+                float(s["thalach"]),
+                EXANG_MAP[s["exang"]],
+                float(s["oldpeak"]),
+                SLOPE_MAP[s["slope"]],
+                int(s["ca"]),
+                THAL_MAP[s["thal"]]
             ]])
 
             patient_scaled = scaler.transform(patient)
@@ -978,28 +1317,28 @@ if st.session_state.page == "form":
                 level = "High"
 
             if probability >= 0.5:
-                title, css_class, conf = "🔴 Heart Disease Detected", "positive", probability * 100
+                title, css_class, conf = f"🔴 {tr('Heart Disease Detected')}", "positive", probability * 100
             else:
-                title, css_class, conf = "🟢 No Heart Disease Detected", "negative", (
+                title, css_class, conf = f"🟢 {tr('No Heart Disease Detected')}", "negative", (
                     1 - probability) * 100
 
             st.session_state.result = {
                 "title": title, "css_class": css_class, "risk_pct": risk_pct,
                 "conf": conf, "level": level,
                 "inputs": {
-                    "Age": age, "Gender": gender, "Chest Pain Type": cp,
-                    "Resting Blood Pressure": trestbps, "Cholesterol": chol,
-                    "Fasting Blood Sugar > 120": fbs, "Resting ECG": restecg,
-                    "Max Heart Rate": thalach, "Exercise Angina": exang,
-                    "Old Peak": f"{oldpeak:.2f}", "Slope": slope,
-                    "Major Vessels": ca, "Thalassemia": thal,
+                    "Age": s["age"], "Gender": s["gender"], "Chest Pain Type": s["cp"],
+                    "Resting Blood Pressure": s["trestbps"], "Cholesterol": s["chol"],
+                    "Fasting Blood Sugar > 120": s["fbs"], "Resting ECG": s["restecg"],
+                    "Max Heart Rate": s["thalach"], "Exercise Angina": s["exang"],
+                    "Old Peak": f"{s['oldpeak']:.2f}", "Slope": s["slope"],
+                    "Major Vessels": s["ca"], "Thalassemia": s["thal"],
                 },
             }
             st.session_state.page = "result"
             st.rerun()
 
         except Exception as e:
-            st.error(f"Something went wrong: {e}")
+            st.error(f"{tr('Something went wrong')}: {e}")
 
 
 # ============================================================
@@ -1023,23 +1362,23 @@ else:
             f"<div class='gauge' style='--p:{r['risk_pct']:.1f}; --c:{color};'>"
             f"<div class='gauge-inner'>"
             f"<div class='gauge-val'>{r['risk_pct']:.1f}%</div>"
-            f"<div class='gauge-lbl'>Disease probability</div>"
+            f"<div class='gauge-lbl'>{tr('Disease probability')}</div>"
             f"</div></div>"
             f"<div class='metrics'>"
-            f"<div class='metric'><div class='m-val'>{r['conf']:.1f}%</div><div class='m-lbl'>Confidence</div></div>"
-            f"<div class='metric'><div class='m-val' style='color:{color};'>{r['level']}</div><div class='m-lbl'>Risk level</div></div>"
+            f"<div class='metric'><div class='m-val'>{r['conf']:.1f}%</div><div class='m-lbl'>{tr('Confidence')}</div></div>"
+            f"<div class='metric'><div class='m-val' style='color:{color};'>{tr(r['level'])}</div><div class='m-lbl'>{tr('Risk level')}</div></div>"
             f"</div>"
-            f"<div class='note'>This tool supports screening only and is not a medical diagnosis.</div>"
+            f"<div class='note'>{tr('This tool supports screening only and is not a medical diagnosis.')}</div>"
             f"</div>",
             unsafe_allow_html=True
         )
 
     rows = "".join(
-        f"<div class='sum-row'><span>{k}</span><b>{v}</b></div>"
+        f"<div class='sum-row'><span>{tr(k)}</span><b>{tr(str(v))}</b></div>"
         for k, v in r["inputs"].items()
     )
     st.markdown(
-        f"<div class='sum-card'><div class='sum-title'>📋 Patient details used for this prediction</div>"
+        f"<div class='sum-card'><div class='sum-title'>📋 {tr('Patient details used for this prediction')}</div>"
         f"<div class='sum-grid'>{rows}</div></div>",
         unsafe_allow_html=True
     )
@@ -1070,14 +1409,13 @@ else:
 
     _, btn_col, _ = st.columns([1, 2, 1])
     with btn_col:
-        # optional: the user can download the report if they want it
         st.download_button(
-            "📄 Download report (PDF)",
+            f"📄 {tr('Download report (PDF)')}",
             data=build_report_pdf(r),
             file_name=f"heart_report_{datetime.now():%Y%m%d_%H%M}.pdf",
             mime="application/pdf",
             width="stretch",
         )
-        if st.button("← New prediction", width="stretch"):
+        if st.button("← New prediction", use_container_width=True):
             st.session_state.page = "form"
             st.rerun()

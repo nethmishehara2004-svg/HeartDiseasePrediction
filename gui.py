@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 import joblib
@@ -5,431 +6,252 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 
-# ============================================================
-# LOAD TRAINED MODEL AND SCALER
-# ============================================================
+# Load the existing trained model and scaler
+try:
+    model = load_model("heart_model.keras")
+    scaler = joblib.load("scaler.pkl")
+except Exception as e:
+    raise RuntimeError(
+        "Could not load heart_model.keras or scaler.pkl. "
+        "Make sure both files are in the project folder."
+    ) from e
 
-model = load_model("heart_model.keras")
-scaler = joblib.load("scaler.pkl")
 
-
-# ============================================================
-# MAIN WINDOW
-# ============================================================
-
+# Main application window
 root = tk.Tk()
-
 root.title("Heart Disease Prediction System")
-root.geometry("700x900")
-root.configure(bg="#f5f7fa")
-root.resizable(True, True)
+root.geometry("650x750")
+root.resizable(False, False)
 
+# Theme colors
+BG_COLOR = "#F3F7FA"
+HEADER_COLOR = "#123B5D"
+ACCENT_COLOR = "#008C95"
+TEXT_COLOR = "#203040"
 
-# ============================================================
-# TITLE
-# ============================================================
+root.configure(bg=BG_COLOR)
 
-title = tk.Label(
+# Title
+title_label = tk.Label(
     root,
-    text="❤️ Heart Disease Prediction System",
-    font=("Arial", 22, "bold"),
-    fg="#c0392b",
-    bg="#f5f7fa"
+    text="Heart Disease Prediction System",
+    font=("Arial", 19, "bold"),
+    bg=HEADER_COLOR,
+    fg="white",
+    pady=18
 )
-
-title.pack(pady=(20, 5))
-
+title_label.pack(fill="x")
 
 subtitle = tk.Label(
     root,
-    text="AI-Based Medical Prediction Prototype",
-    font=("Arial", 11),
-    fg="gray",
-    bg="#f5f7fa"
+    text="Enter patient information and clinical measurements",
+    font=("Arial", 10),
+    bg=BG_COLOR,
+    fg=TEXT_COLOR,
+    pady=10
 )
-
 subtitle.pack()
 
 
-# ============================================================
-# MAIN FRAME
-# ============================================================
+# Main form
+form = tk.Frame(root, bg=BG_COLOR, padx=35, pady=10)
+form.pack(fill="both", expand=True)
 
-frame = tk.Frame(
-    root,
-    bg="white",
-    padx=25,
-    pady=20,
-    relief="groove",
-    bd=2
-)
-
-frame.pack(
-    padx=20,
-    pady=15,
-    fill="both",
-    expand=True
-)
+fields = {}
 
 
-# ============================================================
-# VARIABLES
-# ============================================================
+def add_dropdown(label, options):
+    """Add a labelled dropdown to the form."""
+    row = len(fields)
 
-age = tk.StringVar()
-gender = tk.StringVar()
-cp = tk.StringVar()
-trestbps = tk.StringVar()
-chol = tk.StringVar()
-fbs = tk.StringVar()
-restecg = tk.StringVar()
-thalach = tk.StringVar()
-exang = tk.StringVar()
-oldpeak = tk.StringVar()
-slope = tk.StringVar()
-ca = tk.StringVar()
-thal = tk.StringVar()
+    label_widget = tk.Label(
+        form,
+        text=label,
+        font=("Arial", 10),
+        bg=BG_COLOR,
+        fg=TEXT_COLOR,
+        anchor="w"
+    )
+    label_widget.grid(
+        row=row,
+        column=0,
+        sticky="w",
+        padx=(0, 20),
+        pady=5
+    )
 
+    variable = tk.StringVar(value=options[0])
 
-# ============================================================
-# FONT
-# ============================================================
+    dropdown = ttk.Combobox(
+        form,
+        textvariable=variable,
+        values=options,
+        state="readonly",
+        width=27
+    )
+    dropdown.grid(
+        row=row,
+        column=1,
+        sticky="ew",
+        pady=5
+    )
 
-font_label = ("Arial", 11)
-font_entry = ("Arial", 11)
-
-
-# ============================================================
-# AGE
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Age",
-    bg="white",
-    font=font_label
-).grid(row=0, column=0, sticky="w", pady=6)
-
-tk.Entry(
-    frame,
-    textvariable=age,
-    font=font_entry,
-    width=25
-).grid(row=0, column=1)
+    fields[label] = variable
 
 
-# ============================================================
-# GENDER
-# ============================================================
+def add_entry(label, default_value):
+    """Add a labelled numeric input."""
+    row = len(fields)
 
-tk.Label(
-    frame,
-    text="Gender",
-    bg="white",
-    font=font_label
-).grid(row=1, column=0, sticky="w", pady=6)
+    label_widget = tk.Label(
+        form,
+        text=label,
+        font=("Arial", 10),
+        bg=BG_COLOR,
+        fg=TEXT_COLOR,
+        anchor="w"
+    )
+    label_widget.grid(
+        row=row,
+        column=0,
+        sticky="w",
+        padx=(0, 20),
+        pady=5
+    )
 
-ttk.Combobox(
-    frame,
-    textvariable=gender,
-    values=["Male", "Female"],
-    state="readonly",
-    width=22
-).grid(row=1, column=1)
+    variable = tk.StringVar(value=str(default_value))
+
+    entry = ttk.Entry(
+        form,
+        textvariable=variable,
+        width=30
+    )
+    entry.grid(
+        row=row,
+        column=1,
+        sticky="ew",
+        pady=5
+    )
+
+    fields[label] = variable
 
 
-# ============================================================
-# CHEST PAIN TYPE
-# ============================================================
+# Patient information
+add_entry("Age (years)", 50)
+add_dropdown("Gender", ["Male", "Female"])
 
-tk.Label(
-    frame,
-    text="Chest Pain Type",
-    bg="white",
-    font=font_label
-).grid(row=2, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=cp,
-    values=[
+# Clinical measurements
+add_dropdown(
+    "Chest Pain Type",
+    [
         "Typical Angina",
         "Atypical Angina",
         "Non-anginal Pain",
         "Asymptomatic"
-    ],
-    state="readonly",
-    width=22
-).grid(row=2, column=1)
+    ]
+)
 
+add_entry("Resting Blood Pressure (mmHg)", 120)
+add_entry("Cholesterol (mg/dL)", 200)
 
-# ============================================================
-# BLOOD PRESSURE
-# ============================================================
+add_dropdown(
+    "Fasting Blood Sugar > 120 mg/dL",
+    ["No", "Yes"]
+)
 
-tk.Label(
-    frame,
-    text="Blood Pressure",
-    bg="white",
-    font=font_label
-).grid(row=3, column=0, sticky="w", pady=6)
-
-tk.Entry(
-    frame,
-    textvariable=trestbps,
-    width=25
-).grid(row=3, column=1)
-
-
-# ============================================================
-# CHOLESTEROL
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Cholesterol",
-    bg="white",
-    font=font_label
-).grid(row=4, column=0, sticky="w", pady=6)
-
-tk.Entry(
-    frame,
-    textvariable=chol,
-    width=25
-).grid(row=4, column=1)
-
-
-# ============================================================
-# FASTING BLOOD SUGAR
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Fasting Blood Sugar",
-    bg="white",
-    font=font_label
-).grid(row=5, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=fbs,
-    values=["No", "Yes"],
-    state="readonly",
-    width=22
-).grid(row=5, column=1)
-
-
-# ============================================================
-# ECG RESULT
-# ============================================================
-
-tk.Label(
-    frame,
-    text="ECG Result",
-    bg="white",
-    font=font_label
-).grid(row=6, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=restecg,
-    values=[
+add_dropdown(
+    "Resting ECG",
+    [
         "Normal",
         "ST-T Abnormality",
         "Left Ventricular Hypertrophy"
-    ],
-    state="readonly",
-    width=22
-).grid(row=6, column=1)
+    ]
+)
 
+add_entry("Maximum Heart Rate", 150)
 
-# ============================================================
-# MAXIMUM HEART RATE
-# ============================================================
+add_dropdown(
+    "Exercise-Induced Angina",
+    ["No", "Yes"]
+)
 
-tk.Label(
-    frame,
-    text="Maximum Heart Rate",
-    bg="white",
-    font=font_label
-).grid(row=7, column=0, sticky="w", pady=6)
+add_entry("ST Depression (Oldpeak)", 1.0)
 
-tk.Entry(
-    frame,
-    textvariable=thalach,
-    width=25
-).grid(row=7, column=1)
-
-
-# ============================================================
-# EXERCISE ANGINA
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Exercise Angina",
-    bg="white",
-    font=font_label
-).grid(row=8, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=exang,
-    values=["No", "Yes"],
-    state="readonly",
-    width=22
-).grid(row=8, column=1)
-
-
-# ============================================================
-# OLD PEAK
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Old Peak",
-    bg="white",
-    font=font_label
-).grid(row=9, column=0, sticky="w", pady=6)
-
-tk.Entry(
-    frame,
-    textvariable=oldpeak,
-    width=25
-).grid(row=9, column=1)
-
-
-# ============================================================
-# SLOPE
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Slope",
-    bg="white",
-    font=font_label
-).grid(row=10, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=slope,
-    values=[
+add_dropdown(
+    "ST Segment Slope",
+    [
         "Upsloping",
         "Flat",
         "Downsloping"
-    ],
-    state="readonly",
-    width=22
-).grid(row=10, column=1)
+    ]
+)
 
+add_dropdown(
+    "Number of Major Vessels (CA)",
+    ["0", "1", "2", "3"]
+)
 
-# ============================================================
-# MAJOR VESSELS
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Major Vessels",
-    bg="white",
-    font=font_label
-).grid(row=11, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=ca,
-    values=["0", "1", "2", "3", "4"],
-    state="readonly",
-    width=22
-).grid(row=11, column=1)
-
-
-# ============================================================
-# THALASSEMIA
-# ============================================================
-
-tk.Label(
-    frame,
-    text="Thalassemia",
-    bg="white",
-    font=font_label
-).grid(row=12, column=0, sticky="w", pady=6)
-
-ttk.Combobox(
-    frame,
-    textvariable=thal,
-    values=[
+add_dropdown(
+    "Thalassemia",
+    [
         "Normal",
         "Fixed Defect",
         "Reversible Defect"
-    ],
-    state="readonly",
-    width=22
-).grid(row=12, column=1)
-
-
-# ============================================================
-# RESULT LABEL
-# ============================================================
-
-result_label = tk.Label(
-    frame,
-    text="Prediction Result",
-    font=("Arial", 14, "bold"),
-    bg="white",
-    fg="blue",
-    width=30,
-    height=2,
-    justify="center"
+    ]
 )
 
-result_label.grid(
-    row=15,
-    column=0,
-    columnspan=2,
-    pady=15
-)
+form.columnconfigure(1, weight=1)
 
-
-# ============================================================
-# PREDICTION FUNCTION
-# ============================================================
 
 def predict():
-
+    """Validate inputs and predict using the existing ANN model."""
     try:
+        age = float(fields["Age (years)"].get())
+        trestbps = float(
+            fields["Resting Blood Pressure (mmHg)"].get()
+        )
+        chol = float(fields["Cholesterol (mg/dL)"].get())
+        thalach = float(fields["Maximum Heart Rate"].get())
+        oldpeak = float(fields["ST Depression (Oldpeak)"].get())
 
-        # ----------------------------------------------------
-        # Convert Gender
-        # ----------------------------------------------------
+        # Basic input validation
+        if not 1 <= age <= 120:
+            raise ValueError("Age must be between 1 and 120.")
 
-        sex = 1 if gender.get() == "Male" else 0
+        if not 40 <= trestbps <= 300:
+            raise ValueError(
+                "Resting blood pressure must be between 40 and 300."
+            )
 
+        if not 50 <= chol <= 800:
+            raise ValueError(
+                "Cholesterol must be between 50 and 800."
+            )
 
-        # ----------------------------------------------------
-        # Chest Pain Mapping
-        # ----------------------------------------------------
+        if not 30 <= thalach <= 250:
+            raise ValueError(
+                "Maximum heart rate must be between 30 and 250."
+            )
+
+        if not 0 <= oldpeak <= 20:
+            raise ValueError(
+                "ST depression must be between 0 and 20."
+            )
+
+        # Convert dropdown choices to the dataset's category codes
+        sex = 1 if fields["Gender"].get() == "Male" else 0
 
         cp_map = {
-            "Typical Angina": 0,
-            "Atypical Angina": 1,
-            "Non-anginal Pain": 2,
-            "Asymptomatic": 3
+            "Typical Angina": 1,
+            "Atypical Angina": 2,
+            "Non-anginal Pain": 3,
+            "Asymptomatic": 4
         }
-
-
-        # ----------------------------------------------------
-        # Fasting Blood Sugar
-        # ----------------------------------------------------
 
         fbs_map = {
             "No": 0,
             "Yes": 1
         }
-
-
-        # ----------------------------------------------------
-        # ECG Mapping
-        # ----------------------------------------------------
 
         restecg_map = {
             "Normal": 0,
@@ -437,219 +259,133 @@ def predict():
             "Left Ventricular Hypertrophy": 2
         }
 
-
-        # ----------------------------------------------------
-        # Exercise Angina
-        # ----------------------------------------------------
-
         exang_map = {
             "No": 0,
             "Yes": 1
         }
 
-
-        # ----------------------------------------------------
-        # Slope Mapping
-        # ----------------------------------------------------
-
         slope_map = {
-            "Upsloping": 0,
-            "Flat": 1,
-            "Downsloping": 2
+            "Upsloping": 1,
+            "Flat": 2,
+            "Downsloping": 3
         }
-
-
-        # ----------------------------------------------------
-        # Thalassemia Mapping
-        # ----------------------------------------------------
 
         thal_map = {
-            "Normal": 1,
-            "Fixed Defect": 2,
-            "Reversible Defect": 3
+            "Normal": 3,
+            "Fixed Defect": 6,
+            "Reversible Defect": 7
         }
 
+        ca = int(fields["Number of Major Vessels (CA)"].get())
 
-        # ----------------------------------------------------
-        # Create Patient Data
-        # EXACT ORDER OF 13 MODEL FEATURES
-        # ----------------------------------------------------
-
-        patient = [[
-
-            float(age.get()),
-
+        # IMPORTANT: Keep this order identical to the training features.
+        patient_data = np.array([[
+            age,
             sex,
+            cp_map[fields["Chest Pain Type"].get()],
+            trestbps,
+            chol,
+            fbs_map[
+                fields["Fasting Blood Sugar > 120 mg/dL"].get()
+            ],
+            restecg_map[fields["Resting ECG"].get()],
+            thalach,
+            exang_map[
+                fields["Exercise-Induced Angina"].get()
+            ],
+            oldpeak,
+            slope_map[fields["ST Segment Slope"].get()],
+            ca,
+            thal_map[fields["Thalassemia"].get()]
+        ]], dtype=float)
 
-            cp_map[cp.get()],
+        # Apply the same fitted scaler used during training
+        patient_scaled = scaler.transform(patient_data)
 
-            float(trestbps.get()),
-
-            float(chol.get()),
-
-            fbs_map[fbs.get()],
-
-            restecg_map[restecg.get()],
-
-            float(thalach.get()),
-
-            exang_map[exang.get()],
-
-            float(oldpeak.get()),
-
-            slope_map[slope.get()],
-
-            int(ca.get()),
-
-            thal_map[thal.get()]
-
-        ]]
-
-
-        # ----------------------------------------------------
-        # Convert to NumPy Array
-        # ----------------------------------------------------
-
-        patient = np.array(patient)
-
-
-        # ----------------------------------------------------
-        # Apply Same Scaling Used During Training
-        # ----------------------------------------------------
-
-        patient_scaled = scaler.transform(patient)
-
-
-        # ----------------------------------------------------
-        # Model Prediction
-        # ----------------------------------------------------
-
-        prediction = model.predict(
-            patient_scaled,
-            verbose=0
+        # Predict probability
+        probability = float(
+            np.asarray(model.predict(patient_scaled, verbose=0)).reshape(-1)[0]
         )
 
+        if not 0 <= probability <= 1:
+            raise ValueError(
+                "The model returned an invalid probability."
+            )
 
-        probability = prediction[0][0]
-
-
-        # ----------------------------------------------------
-        # Display ONLY Prediction
-        # ----------------------------------------------------
-
+        # Existing decision threshold
         if probability >= 0.5:
-
-            result_label.config(
-                text="🔴 Heart Disease Detected",
-                fg="red"
-            )
-
+            result = "Heart Disease Detected"
+            result_color = "#B42318"
         else:
+            result = "No Heart Disease Detected"
+            result_color = "#067647"
 
-            result_label.config(
-                text="🟢 No Heart Disease Detected",
-                fg="green"
+        probability_text = f"Model score: {probability * 100:.2f}%"
+
+        result_label.config(
+            text=f"{result}\n{probability_text}",
+            fg=result_color
+        )
+
+        disclaimer_label.config(
+            text=(
+                "This is an AI-generated prediction, not a medical "
+                "diagnosis. Consult a qualified healthcare professional."
             )
+        )
 
-
-    except ValueError:
-
+    except ValueError as e:
         messagebox.showerror(
             "Invalid Input",
-            "Please enter valid numbers in all numeric fields."
+            str(e) or "Please check the entered values."
         )
-
-
-    except KeyError:
-
-        messagebox.showerror(
-            "Missing Selection",
-            "Please select an option from every dropdown."
-        )
-
 
     except Exception as e:
-
         messagebox.showerror(
-            "Error",
-            f"Something went wrong:\n\n{e}"
+            "Prediction Error",
+            f"Could not make a prediction.\n\nDetails: {e}"
         )
 
 
-# ============================================================
-# PREDICT BUTTON
-# ============================================================
-
-predict_btn = tk.Button(
-    frame,
-    text="🔍 Predict",
-    font=("Arial", 13, "bold"),
-    bg="#27ae60",
+# Predict button
+predict_button = tk.Button(
+    root,
+    text="Predict Heart Disease",
+    command=predict,
+    font=("Arial", 12, "bold"),
+    bg=ACCENT_COLOR,
     fg="white",
-    width=18,
-    height=1,
-    command=predict
-)
-
-predict_btn.grid(
-    row=14,
-    column=0,
-    columnspan=2,
+    activebackground=HEADER_COLOR,
+    activeforeground="white",
+    relief="flat",
+    cursor="hand2",
+    padx=20,
     pady=10
 )
+predict_button.pack(pady=12)
 
-
-# ============================================================
-# RESET FUNCTION
-# ============================================================
-
-def clear_fields():
-
-    age.set("")
-    gender.set("")
-    cp.set("")
-    trestbps.set("")
-    chol.set("")
-    fbs.set("")
-    restecg.set("")
-    thalach.set("")
-    exang.set("")
-    oldpeak.set("")
-    slope.set("")
-    ca.set("")
-    thal.set("")
-
-    result_label.config(
-        text="Prediction Result",
-        fg="blue"
-    )
-
-
-# ============================================================
-# RESET BUTTON
-# ============================================================
-
-reset_btn = tk.Button(
-    frame,
-    text="🔄 Reset",
+# Prediction result
+result_label = tk.Label(
+    root,
+    text="Enter the details and click Predict",
     font=("Arial", 13, "bold"),
-    bg="#e67e22",
-    fg="white",
-    width=18,
-    height=1,
-    command=clear_fields
+    bg=BG_COLOR,
+    fg=TEXT_COLOR,
+    justify="center",
+    wraplength=570
 )
+result_label.pack(pady=8)
 
-reset_btn.grid(
-    row=16,
-    column=0,
-    columnspan=2,
-    pady=5
+# Medical disclaimer
+disclaimer_label = tk.Label(
+    root,
+    text="For educational and research purposes only.",
+    font=("Arial", 9),
+    bg=BG_COLOR,
+    fg="#586574",
+    wraplength=570,
+    justify="center"
 )
-
-
-# ============================================================
-# START GUI
-# ============================================================
+disclaimer_label.pack(pady=(0, 12))
 
 root.mainloop()
