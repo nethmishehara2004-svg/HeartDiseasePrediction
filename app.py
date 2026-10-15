@@ -1026,31 +1026,6 @@ st.markdown(
         color: var(--text);
         text-align: right;
         white-space: nowrap;
-=======
-    .sum-card {background: var(--card); border: 1px solid var(--border); border-radius: 18px;
-        padding: 1.4rem 1.8rem; margin-top: 1.2rem;}
-    .sum-title {font-size: 0.9rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
-        color: var(--accent-text); margin-bottom: 0.8rem;}
-    .sum-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 2.5rem;}
-    .sum-row {display: flex; justify-content: space-between; padding: 0.45rem 0;
-        border-bottom: 1px solid var(--border); font-size: 1rem; color: var(--muted);}
-    .sum-row b {color: var(--text);}
-
-    /* ---------- DROPDOWNS: white in Light mode, dark in Dark mode ---------- */
-    div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] ~ * {
-        border: 1.5px solid var(--border) !important;
-        border-radius: 10px !important;
-    }
-    div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] ~ *,
-    div[data-testid="stSelectbox"] [data-testid="stWidgetLabel"] ~ * * {
-        background-color: var(--solid) !important;
-        color: var(--text) !important;
-    }
-    div[data-testid="stSelectbox"] svg {fill: var(--text) !important;}
-    ul[role="listbox"], li[role="option"] {
-        background-color: var(--solid) !important;
-        color: var(--text) !important;
->>>>>>> origin/main
     }
     </style>
     """,
