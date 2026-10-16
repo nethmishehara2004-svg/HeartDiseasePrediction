@@ -515,9 +515,9 @@ st.markdown(
     }
 
     section[data-testid="stSidebar"][aria-expanded="true"] {
-        width: 440px !important;
-        min-width: 320px !important;
-        max-width: 45vw !important;
+        width: 19vw !important;
+        min-width: 0 !important;
+        max-width: 280px !important;
     }
 
     @media (max-width: 768px) {
@@ -538,25 +538,20 @@ st.markdown(
     }
     .side-title {
         color: var(--heading) !important;
-        font-size: 0.9rem;
+        font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.09em;
         text-transform: uppercase;
-        margin: 1.4rem 0 0.6rem 0;
+        margin: 0.75rem 0 0.3rem 0;
     }
     .side-text {
         color: var(--text);
-        font-size: 0.98rem;
-        line-height: 1.6;
+        font-size: 0.72rem;
+        line-height: 1.35;
     }
 
     section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-        padding: 2rem 1.5rem 2rem 1.5rem;
-    }
-    @media (max-width: 480px) {
-        section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-            padding: 1.2rem 1rem 1.5rem 1rem;
-        }
+        padding: 0.75rem 0.85rem 1rem 0.85rem;
     }
 
     section[data-testid="stSidebar"] div[data-testid="stRadio"] {margin: 0.6rem 0 1.6rem 0;}
